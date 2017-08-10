@@ -1,2 +1,4 @@
 class_diagram.uxf
 downloaded/
+__pycache__
+.pyc
