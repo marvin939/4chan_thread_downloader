@@ -1,4 +1,9 @@
+from retriever import LinksRetriever
+import unittest
 import re
+
+
+'''Refactor these into TestCases'''
 
 TITLE = "       /g/ - Waiting for Ryzen thread - Technology - 4chan"
 # title tag from the HTML usually has a bunch of white characters in front
