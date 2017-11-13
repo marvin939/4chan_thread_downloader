@@ -1,16 +1,8 @@
 import unittest
 from bs4 import BeautifulSoup
-
-
+from tests.constants import *
 from retriever import *
 import utilities
-
-# Modify these when running unit tests, if the thread is dead.
-EXPECTED_THREAD_TITLE = '/wg/ - Minimalistic papes - Wallpapers/General - 4chan'
-THREAD_URL = 'http://boards.4chan.org/wg/thread/7027515'
-THREAD_ID = '7027515'
-
-THREAD_GONE_REASON = 'The thread is either dead, or the site is down...'
 
 
 class LinksRetrieverInstantiateTestCase(unittest.TestCase):
@@ -64,6 +56,25 @@ class LinksRetrieverFromHDDTestCase(unittest.TestCase):
         links = self.retriever.get_all_file_links()
         self.assertIn(first_file, links)
         self.assertIn(last_file, links)
+
+    def test_from_hdd(self):
+        self.assertTrue(self.retriever.from_hdd)
+
+    def test_thread_dead_when_from_hdd(self):
+        self.assertTrue(self.retriever.thread_is_dead())
+
+
+class LinksRetrieverFromOnlineTestCase(unittest.TestCase):
+    def setUp(self):
+        self.fake_url = THREAD_URL + '404'  # simulate dead thread
+        self.retriever = LinksRetriever(self.fake_url)
+
+    def test_thread_is_dead(self):
+        self.assertTrue(self.retriever.thread_is_dead())
+
+    def test_thread_is_alive(self):
+        self.retriever = LinksRetriever(THREAD_URL)
+        self.assertFalse(self.retriever.thread_is_dead())
 
 
 class UrlDownloaderTestCase(unittest.TestCase):

@@ -17,7 +17,7 @@ def url_is_accessible(url):
         return __accessibleUrls[url]
 
     try:
-        if requests.get(url).status_code == 200:
+        if requests.get(url).status_code == requests.codes.ok:
             __accessibleUrls[url] = True
             return True
     except:

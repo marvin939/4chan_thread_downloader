@@ -1,3 +1,6 @@
+NOT WORKING AT THE MOMENT! Use 4downloader.py for now!
+
+
 #4CHAN MEDIA FILE DOWNLOADER (my first public repository)
 This is my 4chan images/videos downloader in Python.
 

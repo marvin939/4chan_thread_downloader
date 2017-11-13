@@ -1,3 +1,5 @@
+import glob
+import pickle
 from bs4 import BeautifulSoup
 import requests
 import re
@@ -7,9 +9,12 @@ import utilities
 
 class BatchDownloader:
     THREAD_SAVE_NAME = 'thread.html'
+    THREAD_DETAILS_FILENAME = 'thread_details.pkl'  # pickle
+    MEDIA_FILE_EXTENSIONS = ('.png', '.webm', '.jpg')
 
     def __init__(self, links_retriever, destination_folder='.'):
         self.files_to_download = None
+        self.links_retriever = None
         if isinstance(links_retriever, LinksRetriever):
             self.links_retriever = links_retriever
             self.files_to_download = links_retriever.get_all_file_links()
@@ -28,13 +33,53 @@ class BatchDownloader:
     def start_download(self):
         pass
 
-    def save_html(self):
-        if self.links_retriever.response is None:
-            return
+    def has_response(self):
+        return (self.links_retriever and self.links_retriever.response) or not self.links_retriever.thread_is_dead()
 
+    def save_html(self):
+        if not self.has_response():
+            return
         utilities.create_directory_tree(self.destination_folder)
         with open(os.path.join(self.destination_folder, self.THREAD_SAVE_NAME),'w') as fh:
             fh.write(self.links_retriever.response.text)
+
+    def pickle_details(self, details=None):
+        if details is None:
+            details = self.construct_details_dict()
+            assert details is not None
+        details_dict = details
+
+        utilities.create_directory_tree(self.destination_folder)
+        pickle_destination = os.path.join(self.destination_folder, self.THREAD_DETAILS_FILENAME)
+        with open(pickle_destination, 'wb') as fh:
+            pickle.dump(details_dict, fh)
+
+    def load_details_into_dict(self):
+        pickle_source = os.path.join(self.destination_folder, self.THREAD_DETAILS_FILENAME)
+        if not os.path.exists(pickle_source):
+            return None
+        with open(pickle_source, 'rb') as fh:
+            return pickle.load(fh)
+
+    def construct_details_dict(self):
+        if not self.has_response():
+            return
+        details_dict = dict()
+        details_dict['last-modified'] = self.links_retriever.response.headers['last-modified']
+        details_dict['url'] = self.links_retriever.response.url
+        details_dict['thread_alive'] = True
+        return details_dict
+
+    def get_links_not_downloaded(self):
+        links = set(self.files_to_download)
+        files_downloaded = self.get_files_downloaded()
+        files_not_downloaded = (link for link in links if
+                                os.path.join(self.destination_folder, os.path.basename(link)) not in files_downloaded)
+        return files_not_downloaded
+
+    def get_files_downloaded(self):
+        return set((file for file in glob.glob(self.destination_folder + '*') if
+                      os.path.splitext(file)[1] in self.MEDIA_FILE_EXTENSIONS))
 
 
 class LinksRetriever():
@@ -150,3 +195,13 @@ class LinksRetriever():
             self.files_links.append(self.__get_media_url(media["href"]))
 
         return self.files_links
+
+    def thread_is_dead(self):
+        """
+        Returns True if response's status_code is not 200, but 404
+        """
+        if self.from_hdd:
+            return True
+        if self.response.status_code is not requests.codes.ok:
+            return True
+        return False
