@@ -63,6 +63,9 @@ class LinksRetrieverFromHDDTestCase(unittest.TestCase):
     def test_thread_dead_when_from_hdd(self):
         self.assertTrue(self.retriever.thread_is_dead())
 
+    def test_get_html(self):
+        self.assertIsNotNone(self.retriever.get_html())
+
 
 class LinksRetrieverFromOnlineTestCase(unittest.TestCase):
     def setUp(self):
@@ -75,6 +78,9 @@ class LinksRetrieverFromOnlineTestCase(unittest.TestCase):
     def test_thread_is_alive(self):
         self.retriever = LinksRetriever(THREAD_URL)
         self.assertFalse(self.retriever.thread_is_dead())
+
+    def test_get_html(self):
+        self.assertIsNotNone(self.retriever.get_html())
 
 
 class UrlDownloaderTestCase(unittest.TestCase):

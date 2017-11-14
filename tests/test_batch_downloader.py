@@ -1,3 +1,4 @@
+from tests.useful import *
 from utilities import IgnoreFilter
 import re
 import requests
@@ -214,19 +215,7 @@ class ThreadDownloaderInstantiateFromExistingFolder(unittest.TestCase):
         self.createTestEnvironment(self.existing_directory)
 
     def createTestEnvironment(self, dirname):
-        utilities.create_directory_tree(dirname)
-
-        # Create pickle
-        downloader = BatchDownloader(LinksRetriever('test_thread.html'), dirname)
-        downloader.pickle_details()
-
-        # Create filter
-        ifilter = IgnoreFilter(['\w+\.png'], is_regex=True)
-        ifilter.save(os.path.join(dirname, downloader.IGNORE_LIST_FILENAME))
-
-        # Download the first/top 3 images from the thread
-        for url in downloader.links()[:self.num_files_to_download]:
-            utilities.download_file(url, dirname)
+        createTestEnvironment(dirname, self.num_files_to_download)
 
     def test_instantiate_from_existing_folder(self):
         """Downloader can instantiate self from an existing folder if that folder has a thread_details.pkl file that it can load,

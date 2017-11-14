@@ -1,3 +1,4 @@
+from tests.useful import *
 from tempfile import TemporaryDirectory
 from tests.constants import *
 import unittest
@@ -7,6 +8,8 @@ from retriever import *
 print('THIS WILL TAKE A WHILE SINCE THIS TEST WILL HAVE TO DOWNLOAD EVERYTHING FROM THE THREAD!')
 
 class DownloadTestCase(unittest.TestCase):
+    """Downloads from STICKY_THREAD_URL since that usually contains the least images,
+    and lasts forever (eg. since 247 days from now)..."""
 
     def setUp(self):
         # self.tempdir = TemporaryDirectory(dir=TMP_DIRECTORY)
@@ -25,3 +28,17 @@ class DownloadTestCase(unittest.TestCase):
         self.assertEqual(len(after_download), len(file_urls) + len(downloaded))
         self.assertEqual(len(self.downloader.get_links()), 0)   # None since all have been downloaded
 
+    @unittest.expectedFailure
+    def test_download_all_also_saves_pickle(self):
+        self.downloader.start_download()
+        self.assertTrue(os.path.exists(self.downloader.get_details_path()))
+
+
+class FromExistingDirectoryDownloadFromDeadThreadTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        createTestEnvironment(self.tempdir.name, 3)
+        self.downloader = BatchDownloader.from_directory()
+
+    def test_download_all_pickle_thread_alive_updated(self):
+        pass

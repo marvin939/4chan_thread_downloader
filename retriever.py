@@ -84,7 +84,8 @@ class BatchDownloader:
         if self.links_retriever.response is not None:
             details_dict['last-modified'] = self.links_retriever.response.headers['last-modified']
         details_dict['url'] = self.links_retriever.thread_url
-        details_dict['thread_alive'] = (not self.links_retriever.from_hdd and self.links_retriever.response is not None)
+        # details_dict['thread_alive'] = (not self.links_retriever.from_hdd and self.links_retriever.response is not None)
+        details_dict['thread_alive'] = not self.links_retriever.thread_is_dead()
         return details_dict
 
     def get_links_not_downloaded(self):
@@ -280,3 +281,6 @@ class LinksRetriever():
         if self.response.status_code is not requests.codes.ok:
             return True
         return False
+
+    def get_html(self):
+        return self.soup.prettify(encoding='utf-8')
