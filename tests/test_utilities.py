@@ -71,10 +71,10 @@ class DownloadUrlTestCase(unittest.TestCase):
             os.remove(self.filename)
 
 
-class FilterSaveLoadTestCase(unittest.TestCase):
+class IgnoreFilterSaveLoadTestCase(unittest.TestCase):
     def setUp(self):
         self.ignore_list_path = os.path.join(TMP_DIRECTORY, BatchDownloader.IGNORE_LIST_FILENAME)
-        self.ignore_list_contents = ['http://i.4cdn.org/wg/1507921740712.jpg', 'https://i.4cdn.org/wg/1506628360792.png']
+        self.ignore_list_contents = SOME_THREAD_FILE_URLS
         self.create_ignore_list_file(self.ignore_list_contents)
         self.fake_path = self.ignore_list_path + '123'
 
@@ -118,17 +118,17 @@ class FilterSaveLoadTestCase(unittest.TestCase):
             fil.save()
 
     def test_save_filter_list_no_source_path_error_raised_and_not_saved(self):
-        filter = IgnoreFilter.load_filter(self.ignore_list_path)
-        filter.source_path = None
+        fil = IgnoreFilter.load_filter(self.ignore_list_path)
+        fil.source_path = None
         os.remove(self.ignore_list_path)
         with self.assertRaises(ValueError):
-            filter.save()
+            fil.save()
         self.assertFalse(os.path.exists(self.ignore_list_path))
 
 
-class FilterFilteringListsTestCase(unittest.TestCase):
+class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
     def setUp(self):
-        self.ignore_list_contents = ['http://i.4cdn.org/wg/1507921740712.jpg', 'https://i.4cdn.org/wg/1506628360792.png']
+        self.ignore_list_contents = SOME_THREAD_FILE_URLS
         self.fil = IgnoreFilter(self.ignore_list_contents)
         self.png_regex = r'\w+\.png'
 
@@ -145,7 +145,7 @@ class FilterFilteringListsTestCase(unittest.TestCase):
         regexp_ignore_list = self.fil.convert_filter_list_to_regex_list(ignore_list)
 
         test_list = ['123456.png', '123456.jpg', '6789.png']
-        result = self.fil.filter_with_regexp_list(test_list, regexp_ignore_list)
+        result = tuple(self.fil.filter_with_regexp_list(test_list, regexp_ignore_list))
         self.assertEqual(len(result), 1)
 
     def test_filter_with_ignore_list(self):

@@ -1,3 +1,4 @@
+from utilities import IgnoreFilter
 import re
 import requests
 import glob
@@ -65,6 +66,7 @@ class BatchDownloaderTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.destination_directory, BatchDownloader.THREAD_DETAILS_FILENAME)))
 
 
+@unittest.skipUnless(utilities.url_is_accessible(THREAD_URL), THREAD_GONE_REASON)
 class BatchDownloaderDownloadingTestCase(unittest.TestCase):
 
     GET_NUM_FILES = 3
@@ -85,11 +87,19 @@ class BatchDownloaderDownloadingTestCase(unittest.TestCase):
         downloaded = self.downloader.get_files_downloaded()
         self.assertEqual(len(downloaded), self.GET_NUM_FILES)
 
+    def test_files_not_downloaded_gen(self):
+        not_downloaded = self.downloader.links_not_downloaded()
+        self.assertIsNotNone(not_downloaded)
+        not_downloaded_tuple = tuple(not_downloaded)
+        #not_downloaded_tuple = self.downloader.get_links_not_downloaded()
+        self.assertEqual(len(not_downloaded_tuple), len(self.downloader.files_to_download) - len(self.downloader.get_files_downloaded()))
+
     def test_compare_downloaded(self):
         not_downloaded = tuple(self.downloader.get_links_not_downloaded())
         self.assertEqual(len(not_downloaded), len(self.linkser.get_all_file_links()) - self.GET_NUM_FILES)
 
 
+@unittest.skipUnless(utilities.url_is_accessible(THREAD_URL), THREAD_GONE_REASON)
 class BatchDownloaderDetailsTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -162,3 +172,26 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         loaded = self.downloader.load_details_into_dict()
         self.assertIsNotNone(loaded)
         self.assertEqual(loaded['thread_alive'], details['thread_alive'])
+
+
+class ThreadDownloaderWithIgnoreFilteringTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.downloader = BatchDownloader(LinksRetriever('test_thread.html'), TMP_DIRECTORY)
+        self.downloader.ifilter = IgnoreFilter(SOME_THREAD_FILE_URLS)    # Just a normal one, without regular expressions
+
+    def test_get_links(self):
+        all_links = self.downloader.links_retriever.get_all_file_links()
+        downloaded = self.downloader.get_files_downloaded()
+        ignored = self.downloader.ifilter.filter_list
+
+        file_links = tuple(self.downloader.get_links())  # implied filtered=True (default)
+        self.assertEqual(len(file_links), len(all_links) - len(downloaded) - len(ignored))
+
+    def test_get_links_filtered_false(self):
+        all_links = self.downloader.links_retriever.get_all_file_links()
+        downloaded = self.downloader.get_files_downloaded()
+        ignored = self.downloader.ifilter.filter_list
+
+        file_links = self.downloader.get_links(filtered=False)  # do not use ifilter.filter()
+        self.assertEqual(len(file_links), len(all_links) - len(downloaded))

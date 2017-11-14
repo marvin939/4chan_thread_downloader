@@ -26,7 +26,7 @@ class BatchDownloader:
             except:
                 raise TypeError('links argument must be iterable!')
         self.destination_folder = os.path.expanduser(destination_folder)
-        # self.ignore_list = []
+        self.ifilter = None
 
     # def read_response(self):
     #     if self.links_retriever.response is None:
@@ -69,20 +69,33 @@ class BatchDownloader:
         details_dict = dict()
         details_dict['last-modified'] = self.links_retriever.response.headers['last-modified']
         details_dict['url'] = self.links_retriever.response.url
-        details_dict['thread_alive'] = True
+        #details_dict['thread_alive'] = True
+        details_dict['thread_alive'] = (not self.links_retriever.from_hdd and self.links_retriever.response is not None)
         return details_dict
 
     def get_links_not_downloaded(self):
+        return tuple(self.links_not_downloaded())
+
+    def links_not_downloaded(self):
+        """Returns a generator for a list of files that have not been downloaded"""
         links = set(self.files_to_download)
-        files_downloaded = self.get_files_downloaded()
-        files_not_downloaded = (link for link in links if
-                                os.path.join(self.destination_folder, os.path.basename(link)) not in files_downloaded)
-        return files_not_downloaded
+        not_downloaded = (link for link in links if
+                          os.path.join(self.destination_folder, os.path.basename(link)) not in self.files_downloaded())
+        return not_downloaded
 
     def get_files_downloaded(self):
-        return set((file for file in glob.glob(self.destination_folder + '*') if
-                      os.path.splitext(file)[1] in self.MEDIA_FILE_EXTENSIONS))
+        return tuple(self.files_downloaded())
 
+    def files_downloaded(self):
+        """Returns a generator that contains a list of files that have been downloaded"""
+        return (file for file in glob.glob(self.destination_folder + '*') if
+                os.path.splitext(file)[1] in self.MEDIA_FILE_EXTENSIONS)
+
+    def get_links(self, filtered=True):
+        not_downloaded = tuple(self.get_links_not_downloaded())
+        if self.ifilter is None or filtered is False:
+            return not_downloaded
+        return self.ifilter.filter(not_downloaded)
 
 
 class LinksRetriever():

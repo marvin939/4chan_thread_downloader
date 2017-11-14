@@ -117,7 +117,8 @@ class IgnoreFilter:
 
     @staticmethod
     def filter_with_regexp_list(items, regexp_list):
-        filtered = set()
+        filtered = list()
+        # filtered = set()
 
         for item in items:
             add_item = True
@@ -127,6 +128,6 @@ class IgnoreFilter:
                     add_item = False
                     break
             if add_item:
-                filtered.add(item)
+                filtered += [item]
 
         return filtered
