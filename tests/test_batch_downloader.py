@@ -71,7 +71,7 @@ class BatchDownloaderTestCase(unittest.TestCase):
 @unittest.skipUnless(utilities.url_is_accessible(THREAD_URL), THREAD_GONE_REASON)
 class BatchDownloaderDownloadingTestCase(unittest.TestCase):
 
-    GET_NUM_FILES = 3
+    GET_NUM_FILES = 5
 
     def setUp(self):
         self.linkser = LinksRetriever(THREAD_URL)
@@ -206,17 +206,27 @@ class ThreadDownloaderInstantiateFromExistingFolder(unittest.TestCase):
     def setUp(self):
         from tempfile import TemporaryDirectory
         self.links_retriever = None
-        self.existing_directory = os.path.join(TMP_DIRECTORY, 'temp_download_dir')
+        self.tmpdir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        # self.existing_directory = os.path.join(TMP_DIRECTORY, 'temp_download_dir')
+        self.existing_directory = self.tmpdir.name
+        self.num_files_to_download = 3
+
         self.createTestEnvironment(self.existing_directory)
 
     def createTestEnvironment(self, dirname):
         utilities.create_directory_tree(dirname)
 
+        # Create pickle
         downloader = BatchDownloader(LinksRetriever('test_thread.html'), dirname)
         downloader.pickle_details()
+
+        # Create filter
         ifilter = IgnoreFilter(['\w+\.png'], is_regex=True)
         ifilter.save(os.path.join(dirname, downloader.IGNORE_LIST_FILENAME))
-        # pass
+
+        # Download the first/top 3 images from the thread
+        for url in downloader.links()[:self.num_files_to_download]:
+            utilities.download_file(url, dirname)
 
     def test_instantiate_from_existing_folder(self):
         """Downloader can instantiate self from an existing folder if that folder has a thread_details.pkl file that it can load,
@@ -225,3 +235,8 @@ class ThreadDownloaderInstantiateFromExistingFolder(unittest.TestCase):
         downloader = BatchDownloader.from_directory(self.existing_directory)
         self.assertIsNotNone(downloader)
         self.assertIsNotNone(downloader.links_retriever)
+
+    def test_num_downloaded(self):
+        downloader = BatchDownloader.from_directory(self.existing_directory)
+        downloaded = downloader.get_files_downloaded()
+        self.assertEqual(len(downloaded), self.num_files_to_download)

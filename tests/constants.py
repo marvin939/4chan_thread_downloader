@@ -20,3 +20,8 @@ if not utilities.url_is_accessible(THREAD_URL):
     raise ValueError(
         '*****The thread is dead! Please replace with a more recent thread URL!*****\n'
         '*****Remember to change the other constants too!*****')
+
+if not utilities.url_is_accessible(STICKY_THREAD_URL):
+    raise ValueError(
+        '*****The sticky thread is dead! Please replace with a more recent thread URL!*****\n'
+        '*****Remember to change the other constants too!*****')
