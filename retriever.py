@@ -10,6 +10,7 @@ import utilities
 class BatchDownloader:
     THREAD_SAVE_NAME = 'thread.html'
     THREAD_DETAILS_FILENAME = 'thread_details.pkl'  # pickle
+    IGNORE_LIST_FILENAME = 'ignore_list.txt'
     MEDIA_FILE_EXTENSIONS = ('.png', '.webm', '.jpg')
 
     def __init__(self, links_retriever, destination_folder='.'):
@@ -25,10 +26,11 @@ class BatchDownloader:
             except:
                 raise TypeError('links argument must be iterable!')
         self.destination_folder = os.path.expanduser(destination_folder)
+        # self.ignore_list = []
 
-    def read_response(self):
-        if self.links_retriever.response is None:
-            return
+    # def read_response(self):
+    #     if self.links_retriever.response is None:
+    #         return
 
     def start_download(self):
         pass
@@ -82,6 +84,7 @@ class BatchDownloader:
                       os.path.splitext(file)[1] in self.MEDIA_FILE_EXTENSIONS))
 
 
+
 class LinksRetriever():
     """Retrieves media links from a thread URL"""
     PATTERN_TITLE = r"\/(?P<board>\w+)\/ - (?P<title>\w+(\s+\w+)*)"
@@ -96,8 +99,8 @@ class LinksRetriever():
     def __init__(self, url):
         self.thread_url = url
         self.from_hdd = False
-
         self.soup = None
+        self.response = None
         if isinstance(url, str):
             if self.RE_FOURCHAN_URL.search(url) is None:
                 # Then the file is on the HDD

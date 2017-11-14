@@ -6,3 +6,4 @@ __pycache__
 *.jpg
 *.jpeg
 tests/test_thread_files/
+tests/tmp/

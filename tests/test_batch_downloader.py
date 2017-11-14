@@ -1,3 +1,5 @@
+import re
+import requests
 import glob
 from retriever import LinksRetriever, BatchDownloader
 import unittest
@@ -7,10 +9,6 @@ from tests.constants import *
 
 
 class BatchDownloaderInstantiateTestCase(unittest.TestCase):
-
-    def test_instantiate_with_url_list(self):
-        downloader = BatchDownloader(['abcdef.png', '123456.jpg'])
-        '''Fix this test'''
 
     def test_instantiate_with_non_iterable(self):
         with self.assertRaises(TypeError):
@@ -26,6 +24,12 @@ class BatchDownloaderInstantiateTestCase(unittest.TestCase):
         destination_dir = os.path.expanduser('~/Downloads/')
         downloader = BatchDownloader(getter, destination_dir)
         self.assertEqual(downloader.destination_folder, destination_dir)
+
+    # def test_instantiate_with_many_links_retriever(self):
+    #     getters = (LinksRetriever('test_thread.html'), LinksRetriever(requests.get(THREAD_URL)))
+    #     destination_dir = os.path.expanduser('~/Downloads/')
+    #     downloader = BatchDownloader(getters, destination_dir)
+    #     self.assertEqual(downloader.retrievers, getters)
 
     '''Class should also deal with differences between downloaded files and files to be downloaded'''
 
@@ -59,6 +63,40 @@ class BatchDownloaderTestCase(unittest.TestCase):
     def test_pickle_details_save_exists(self):
         self.downloader.pickle_details()
         self.assertTrue(os.path.exists(os.path.join(self.destination_directory, BatchDownloader.THREAD_DETAILS_FILENAME)))
+
+
+class BatchDownloaderDownloadingTestCase(unittest.TestCase):
+
+    GET_NUM_FILES = 3
+
+    def setUp(self):
+        self.linkser = LinksRetriever(THREAD_URL)
+        #self.destination_directory = os.path.expanduser('~/Downloads/TestDownloadThread/')
+        self.destination_directory = TMP_DIRECTORY
+        self.downloader = BatchDownloader(self.linkser, self.destination_directory)
+
+    def test_download_files(self):
+        # Get first 3 files
+        for url in self.linkser.get_all_file_links()[:self.GET_NUM_FILES]:
+            download_path = utilities.download_file(url, self.downloader.destination_folder)
+            self.assertTrue(os.path.exists(download_path))
+
+    def test_files_downloaded(self):
+        downloaded = self.downloader.get_files_downloaded()
+        self.assertEqual(len(downloaded), self.GET_NUM_FILES)
+
+    def test_compare_downloaded(self):
+        not_downloaded = tuple(self.downloader.get_links_not_downloaded())
+        self.assertEqual(len(not_downloaded), len(self.linkser.get_all_file_links()) - self.GET_NUM_FILES)
+
+
+class BatchDownloaderDetailsTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.linkser = LinksRetriever(THREAD_URL)
+        self.destination_directory = os.path.expanduser(TMP_DIRECTORY)
+        self.downloader = BatchDownloader(self.linkser, self.destination_directory)
+        self.downloader.pickle_details()
 
     def test_construct_details_dict(self):
         details = self.downloader.construct_details_dict()
@@ -98,43 +136,6 @@ class BatchDownloaderTestCase(unittest.TestCase):
         self.assertEqual(loaded['last-modified'], custom_details['last-modified'])
         self.assertEqual(loaded['url'], custom_details['url'])
         self.assertEqual(loaded['thread_alive'], custom_details['thread_alive'])
-
-
-class BatchDownloaderDownloadingTestCase(unittest.TestCase):
-
-    GET_NUM_FILES = 3
-
-    def setUp(self):
-        self.linkser = LinksRetriever(REAL_THREAD_URL)
-        #self.destination_directory = os.path.expanduser('~/Downloads/TestDownloadThread/')
-        self.destination_directory = TMP_DIRECTORY
-        self.downloader = BatchDownloader(self.linkser, self.destination_directory)
-
-    def test_download_files(self):
-        # Get first 3 files
-        for url in self.linkser.get_all_file_links()[:self.GET_NUM_FILES]:
-            download_path = utilities.download_file(url, self.downloader.destination_folder)
-            self.assertTrue(os.path.exists(download_path))
-
-    def test_files_downloaded(self):
-        downloaded = self.downloader.get_files_downloaded()
-        self.assertEqual(len(downloaded), self.GET_NUM_FILES)
-
-    def test_compare_downloaded(self):
-        not_downloaded = tuple(self.downloader.get_links_not_downloaded())
-        self.assertEqual(len(not_downloaded), len(self.linkser.get_all_file_links()) - self.GET_NUM_FILES)
-
-    def test_download_exceptions(self):
-        pass
-
-
-class BatchDownloaderDetailsTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.linkser = LinksRetriever(REAL_THREAD_URL)
-        self.destination_directory = os.path.expanduser(TMP_DIRECTORY)
-        self.downloader = BatchDownloader(self.linkser, self.destination_directory)
-        self.downloader.pickle_details()
 
     def test_thread_404_but_has_details(self):
         fake_url = THREAD_URL + '404'
