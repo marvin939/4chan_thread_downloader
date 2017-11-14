@@ -26,13 +26,16 @@ def url_is_accessible(url):
         return False
 
 
-def download_file(url, directory='.', filename=None):
+def download_file(url, directory='.', filename=None, overwrite=False, silent=False):
     directory = os.path.abspath(os.path.expanduser(directory))
 
     save_as = filename
     if filename is None:
         save_as = os.path.basename(url)
     save_path = os.path.join(directory, save_as)
+
+    if os.path.exists(save_path) and not overwrite:
+        raise FileExistsError('Overwrite is disabled, and {} already exists!', save_path)
 
     if not os.path.exists(directory):
         os.makedirs(directory, exist_ok=True)
@@ -66,15 +69,22 @@ class IgnoreFilter:
         self.is_regex_list = is_regex
 
     def filter(self, items):
+        """Returns a generator of a list of items that have been filtered with the filter list"""
         if not self.is_regex_list:
             return IgnoreFilter.filter_with_ignore_list(items, self.filter_list)
         return IgnoreFilter.filter_with_regexp_list(items, self.filter_list)
 
+    # @staticmethod
+    # def filter_with_ignore_list(urls, ignore_list):
+    #     ignore_list = tuple((os.path.basename(filename) for filename in ignore_list))
+    #     filtered = list(link for link in urls if os.path.basename(link) not in ignore_list)
+    #     return filtered
     @staticmethod
     def filter_with_ignore_list(urls, ignore_list):
-        ignore_list = tuple((os.path.basename(filename) for filename in ignore_list))
-        filtered = list(link for link in urls if os.path.basename(link) not in ignore_list)
-        return filtered
+        """Returns a generator of a list of items that are not ignored using ignore_list"""
+        def ignore_list_gen():
+            return (os.path.basename(filename) for filename in ignore_list)
+        return (link for link in urls if os.path.basename(link) not in ignore_list_gen())
 
     @staticmethod
     def load_filter(list_path):
@@ -115,11 +125,26 @@ class IgnoreFilter:
             new_list = [re.compile(item)]
         return new_list
 
+    # @staticmethod
+    # def filter_with_regexp_list(items, regexp_list):
+    #     filtered = list()
+    #     # filtered = set()
+    #
+    #     for item in items:
+    #         add_item = True
+    #         for regexp in regexp_list:
+    #             res = regexp.search(item)
+    #             if res is not None:
+    #                 add_item = False
+    #                 break
+    #         if add_item:
+    #             filtered += [item]
+    #
+    #     return filtered
+
     @staticmethod
     def filter_with_regexp_list(items, regexp_list):
         filtered = list()
-        # filtered = set()
-
         for item in items:
             add_item = True
             for regexp in regexp_list:
@@ -128,6 +153,4 @@ class IgnoreFilter:
                     add_item = False
                     break
             if add_item:
-                filtered += [item]
-
-        return filtered
+                yield item

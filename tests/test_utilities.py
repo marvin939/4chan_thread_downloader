@@ -5,6 +5,7 @@ import shutil
 from retriever import *
 from tests.constants import *
 from utilities import IgnoreFilter
+from tempfile import TemporaryDirectory
 
 
 class UrlIsAccessibleTestCase(unittest.TestCase):
@@ -69,6 +70,23 @@ class DownloadUrlTestCase(unittest.TestCase):
                 shutil.rmtree(self.destination)
         if os.path.exists(self.filename):
             os.remove(self.filename)
+
+
+class DownloadUrlOverrideFileTestCase(unittest.TestCase):
+    def setUp(self):
+        self.url = 'https://www.python.org/static/img/python-logo.png'
+        self.tempdir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.download_directory = self.tempdir.name
+        utilities.download_file(self.url, self.download_directory)  # Save it now
+        print('temporary directory:', self.download_directory)
+
+    def test_download_with_overwrite_false(self):
+        with self.assertRaises(FileExistsError):
+            utilities.download_file(self.url, self.download_directory, overwrite=False)
+
+    def test_download_with_overwrite_enabled(self):
+        save_path = utilities.download_file(self.url, self.download_directory, overwrite=True)
+        self.assertTrue(os.path.exists(save_path))
 
 
 class IgnoreFilterSaveLoadTestCase(unittest.TestCase):
@@ -166,7 +184,7 @@ class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
         downloader = BatchDownloader(LinksRetriever('test_thread.html'))
         not_downloaded = list(downloader.get_links_not_downloaded())
 
-        filtered = fil.filter(not_downloaded)
+        filtered = tuple(fil.filter(not_downloaded))
         self.assertNotIn(self.ignore_list_contents, filtered)
 
     def test_instantiate_with_regex_list(self):
@@ -178,7 +196,7 @@ class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
         downloader = BatchDownloader(LinksRetriever('test_thread.html'))
         not_downloaded = list(downloader.get_links_not_downloaded())
 
-        filtered = fil.filter(not_downloaded)
+        filtered = tuple(fil.filter(not_downloaded))
         # self.assertNotIn(self.ignore_list_contents, filtered)
         for ignore in self.ignore_list_contents:
             self.assertNotIn(ignore, filtered)
@@ -186,5 +204,5 @@ class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
     def test_regex_list_filter_function_with_regex(self):
         fil = IgnoreFilter(self.ignore_list_contents + [self.png_regex], is_regex=True)
         test_list = ['123456.png', '123456.jpg', '6789.png']    # only 1 jpg; 2 pngs
-        filtered = fil.filter(test_list)
+        filtered = tuple(fil.filter(test_list))
         self.assertEqual(len(filtered), 1)

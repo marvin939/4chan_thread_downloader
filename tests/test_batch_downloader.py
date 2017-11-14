@@ -11,9 +11,9 @@ from tests.constants import *
 
 class BatchDownloaderInstantiateTestCase(unittest.TestCase):
 
-    def test_instantiate_with_non_iterable(self):
-        with self.assertRaises(TypeError):
-            downloader = BatchDownloader(123456)
+    # def test_instantiate_with_non_iterable(self):
+    #     with self.assertRaises(TypeError):
+    #         downloader = BatchDownloader(123456)
 
     def test_instantiate_with_link_retriever(self):
         getter = LinksRetriever('test_thread.html')
@@ -31,8 +31,6 @@ class BatchDownloaderInstantiateTestCase(unittest.TestCase):
     #     destination_dir = os.path.expanduser('~/Downloads/')
     #     downloader = BatchDownloader(getters, destination_dir)
     #     self.assertEqual(downloader.retrievers, getters)
-
-    '''Class should also deal with differences between downloaded files and files to be downloaded'''
 
 
 class BatchDownloaderTestCase(unittest.TestCase):
@@ -66,6 +64,10 @@ class BatchDownloaderTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.destination_directory, BatchDownloader.THREAD_DETAILS_FILENAME)))
 
 
+
+# @unittest.skipUnless(utilities.url_is_accessible(THREAD_URL), THREAD_GONE_REASON)
+# class ThreadDownloaderDownloadOnceTestCase(unittest.TestCase):
+
 @unittest.skipUnless(utilities.url_is_accessible(THREAD_URL), THREAD_GONE_REASON)
 class BatchDownloaderDownloadingTestCase(unittest.TestCase):
 
@@ -76,12 +78,16 @@ class BatchDownloaderDownloadingTestCase(unittest.TestCase):
         #self.destination_directory = os.path.expanduser('~/Downloads/TestDownloadThread/')
         self.destination_directory = TMP_DIRECTORY
         self.downloader = BatchDownloader(self.linkser, self.destination_directory)
+        self.download_files()
 
-    def test_download_files(self):
-        # Get first 3 files
+    def download_files(self):
         for url in self.linkser.get_all_file_links()[:self.GET_NUM_FILES]:
             download_path = utilities.download_file(url, self.downloader.destination_folder)
-            self.assertTrue(os.path.exists(download_path))
+            assert os.path.exists(download_path)
+
+    def tearDown(self):
+        for url in self.linkser.get_all_file_links()[:self.GET_NUM_FILES]:
+            os.remove(os.path.join(self.destination_directory, os.path.basename(url)))
 
     def test_files_downloaded(self):
         downloaded = self.downloader.get_files_downloaded()
@@ -91,7 +97,6 @@ class BatchDownloaderDownloadingTestCase(unittest.TestCase):
         not_downloaded = self.downloader.links_not_downloaded()
         self.assertIsNotNone(not_downloaded)
         not_downloaded_tuple = tuple(not_downloaded)
-        #not_downloaded_tuple = self.downloader.get_links_not_downloaded()
         self.assertEqual(len(not_downloaded_tuple), len(self.downloader.files_to_download) - len(self.downloader.get_files_downloaded()))
 
     def test_compare_downloaded(self):
@@ -122,7 +127,7 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         down = BatchDownloader(self.linkser, './tmp/')
         details = down.construct_details_dict()
         down.pickle_details()
-        loaded = down.load_details_into_dict()
+        loaded = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
         self.assertTrue(isinstance(loaded, dict))
         self.assertEqual(loaded, details)
 
@@ -130,7 +135,7 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         down = BatchDownloader(self.linkser, './tmp/')
         details = down.construct_details_dict()
         down.pickle_details()
-        loaded = down.load_details_into_dict()
+        loaded = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
 
         self.assertEqual(loaded['last-modified'], details['last-modified'])
         self.assertEqual(loaded['url'], details['url'])
@@ -141,7 +146,7 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         down = BatchDownloader(self.linkser, './tmp/')
         #details = down.construct_details_dict()
         down.pickle_details(custom_details)
-        loaded = down.load_details_into_dict()
+        loaded = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
 
         self.assertEqual(loaded['last-modified'], custom_details['last-modified'])
         self.assertEqual(loaded['url'], custom_details['url'])
@@ -154,7 +159,7 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         # update the details pickle
 
         self.assertTrue(self.linkser.thread_is_dead())
-        details = self.downloader.load_details_into_dict()
+        details = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
         self.assertIsNotNone(details)
         self.assertTrue(details['thread_alive'], True)  # Hasn't been updated yet...
 
@@ -162,14 +167,14 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         fake_url = THREAD_URL + '404'
         self.linkser = LinksRetriever(fake_url)
         self.downloader = BatchDownloader(self.linkser, self.destination_directory)
-        details = self.downloader.load_details_into_dict()
+        details = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
         self.assertIsNotNone(details)
 
         details['thread_alive'] = False
         self.assertFalse(details['thread_alive'])
         self.downloader.pickle_details(details)
 
-        loaded = self.downloader.load_details_into_dict()
+        loaded = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
         self.assertIsNotNone(loaded)
         self.assertEqual(loaded['thread_alive'], details['thread_alive'])
 
@@ -195,3 +200,28 @@ class ThreadDownloaderWithIgnoreFilteringTestCase(unittest.TestCase):
 
         file_links = self.downloader.get_links(filtered=False)  # do not use ifilter.filter()
         self.assertEqual(len(file_links), len(all_links) - len(downloaded))
+
+
+class ThreadDownloaderInstantiateFromExistingFolder(unittest.TestCase):
+    def setUp(self):
+        from tempfile import TemporaryDirectory
+        self.links_retriever = None
+        self.existing_directory = os.path.join(TMP_DIRECTORY, 'temp_download_dir')
+        self.createTestEnvironment(self.existing_directory)
+
+    def createTestEnvironment(self, dirname):
+        utilities.create_directory_tree(dirname)
+
+        downloader = BatchDownloader(LinksRetriever('test_thread.html'), dirname)
+        downloader.pickle_details()
+        ifilter = IgnoreFilter(['\w+\.png'], is_regex=True)
+        ifilter.save(os.path.join(dirname, downloader.IGNORE_LIST_FILENAME))
+        # pass
+
+    def test_instantiate_from_existing_folder(self):
+        """Downloader can instantiate self from an existing folder if that folder has a thread_details.pkl file that it can load,
+        and optionally, an ignore list text file, or a few already downloaded files. As long as the thread_details.pkl
+        file exists, it is ok to instantiate one from a directory."""
+        downloader = BatchDownloader.from_directory(self.existing_directory)
+        self.assertIsNotNone(downloader)
+        self.assertIsNotNone(downloader.links_retriever)

@@ -1,0 +1,32 @@
+from tempfile import TemporaryDirectory
+from tests.constants import *
+import unittest
+from retriever import *
+
+
+print('THIS WILL TAKE A WHILE SINCE THIS TEST WILL HAVE TO DOWNLOAD EVERYTHING FROM THE THREAD!')
+
+class DownloadTestCase(unittest.TestCase):
+
+    def setUp(self):
+        # self.tempdir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        # self.tempdir_path = self.tempdir.name
+        self.tempdir_path = os.path.join(TMP_DIRECTORY, 'temp_files')
+        print('tempdir:', self.tempdir_path)
+        utilities.create_directory_tree(self.tempdir_path)
+        self.downloader = BatchDownloader(LinksRetriever(STICKY_THREAD_URL), self.tempdir_path)
+
+    # def tearD
+
+    # @unittest.skip
+    def test_download_all(self):
+        file_urls = tuple(self.downloader.get_links())
+        downloaded = self.downloader.get_files_downloaded()
+        print('files to get:', '\n'.join(file_urls), sep='\n')
+        # url_filenames = tuple((os.path.basename(url) for url in file_urls))
+        self.downloader.start_download()
+        # after_download = tuple(self.downloader.get_links()) # No more files to download since all of them have been
+        after_download = tuple(self.downloader.get_files_downloaded())
+        self.assertEqual(len(after_download), len(file_urls) + len(downloaded)) # None since all have been downloaded
+        self.assertEqual(len(self.downloader.get_links()), 0)
+

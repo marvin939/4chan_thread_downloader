@@ -3,27 +3,23 @@ import unittest
 import re
 
 
-'''Refactor these into TestCases'''
+class LinksRetrieverTitleRegexTestCase(unittest.TestCase):
 
-TITLE = "       /g/ - Waiting for Ryzen thread - Technology - 4chan"
-# title tag from the HTML usually has a bunch of white characters in front
+    EXAMPLE_TITLE = '       /g/ - Waiting for Ryzen thread - Technology - 4chan'
+    EXPECTED_THREAD_BOARD_NAME = 'g'
+    EXPECTED_THREAD_TITLE = 'Waiting for Ryzen thread'
 
-REGEX_TITLE = r"\s*\/(?P<board>\w+)\/ - (?P<title>\w+(\s+\w+)*)"
-title_re = re.compile(REGEX_TITLE)
-matches = title_re.match(TITLE)
+    def test_match_title(self):
+        matches = LinksRetriever.RE_TITLE.search(self.EXAMPLE_TITLE)
+        self.assertIsNotNone(matches)
 
-print("Groups:", matches.groups())
+    def test_group_match_title_board(self):
+        matches = LinksRetriever.RE_TITLE.search(self.EXAMPLE_TITLE)
+        self.assertEqual(matches('board'), self.EXPECTED_THREAD_BOARD_NAME)
 
-title = matches.group("title")
-if title == "Waiting for Ryzen thread":
-    print("Regex title matching works")
-    print("Title:", title)
-else:
-    print("Regex title matching FAILED")
+    def test_group_match_thread_title(self):
+        matches = LinksRetriever.RE_TITLE.search(self.EXAMPLE_TITLE)
+        self.assertEqual(matches('title'), self.EXPECTED_THREAD_TITLE)
 
-board_name = matches.group("board")
-if board_name == "g":
-    print("Regex board name matching works")
-    print("Board:", board_name)
-else:
-    print("Regex board name matching FAILED")
+
+'''Tests for other compiled regex patterns'''
