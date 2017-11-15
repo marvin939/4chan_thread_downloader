@@ -1,11 +1,12 @@
+from tests.constants import *
 from retriever import *
 
 
-def createTestEnvironment(dirname, num_files_to_download):
+def create_test_environment(dirname, num_files_to_download, url=TEST_THREAD_FILENAME):
     utilities.create_directory_tree(dirname)
 
     # Create pickle
-    downloader = BatchDownloader(LinksRetriever('test_thread.html'), dirname)
+    downloader = BatchDownloader(LinksRetriever(url), dirname)
     downloader.pickle_details()
 
     # Create filter

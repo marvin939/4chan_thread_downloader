@@ -1,8 +1,8 @@
 import unittest
-from bs4 import BeautifulSoup
-from tests.constants import *
-from retriever import *
+
 import utilities
+from retriever import *
+from tests.constants import *
 
 
 class LinksRetrieverInstantiateTestCase(unittest.TestCase):
@@ -34,6 +34,16 @@ class LinksRetrieverInstantiateTestCase(unittest.TestCase):
     def test_response_saved_if_url_used(self):
         linkser = LinksRetriever(THREAD_URL)
         self.assertIsNotNone(linkser.response)
+
+    def test_instantiating_with_unsupported_url_type(self):
+        with self.assertRaises(TypeError):
+            linkser = LinksRetriever(123456)
+
+    def test_instantiating_with_non_existent_thread_file(self):
+        with self.assertRaises(FileNotFoundError):
+            LinksRetriever('iauygiuoasdfyyiorwe')
+        with self.assertRaises(FileNotFoundError):
+            LinksRetriever('iauygiuoasdfyyiorwe.html')
 
 
 class LinksRetrieverFromHDDTestCase(unittest.TestCase):

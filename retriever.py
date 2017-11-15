@@ -30,12 +30,16 @@ class BatchDownloader:
                 save_path = utilities.download_file(url, self.destination_folder)
             except FileExistsError:
                 print('skipping {}...'.format(url))
+            return save_path
 
         with futures.ThreadPoolExecutor() as executor:
             jobs = []
             for url in self.links():
                 jobs += [executor.submit(download_url, url)]
-            futures.wait(jobs, futures.ALL_COMPLETED)
+            # if len(jobs) > 0:
+            futures.wait(jobs)  #, futures.ALL_COMPLETED)
+
+        self.pickle_details()
 
     def has_response(self):
         return (self.links_retriever and self.links_retriever.response) or not self.links_retriever.thread_is_dead()
@@ -84,28 +88,19 @@ class BatchDownloader:
         if self.links_retriever.response is not None:
             details_dict['last-modified'] = self.links_retriever.response.headers['last-modified']
         details_dict['url'] = self.links_retriever.thread_url
-        # details_dict['thread_alive'] = (not self.links_retriever.from_hdd and self.links_retriever.response is not None)
         details_dict['thread_alive'] = not self.links_retriever.thread_is_dead()
         return details_dict
 
     def get_links_not_downloaded(self):
         return tuple(self.links_not_downloaded())
 
-    # def links_not_downloaded(self):
-    #     """Returns a generator for a list of files that have not been downloaded"""
-    #     # links = set(self.files_to_download)
-    #     links = self.links_retriever.get_all_file_links()
-    #     not_downloaded = (link for link in links if
-    #                       os.path.join(self.destination_folder, os.path.basename(link)) not in self.get_files_downloaded())
-    #     return not_downloaded
-
     def links_not_downloaded(self):
         """Returns a generator for a list of files that have not been downloaded"""
         # links = set(self.files_to_download)
         links = self.links_retriever.get_all_file_links()
         downloaded = self.files_downloaded()
-        downloaded_filenames = tuple(os.path.basename(path) for path in downloaded)
-        not_downloaded = (link for link in links if os.path.basename(link) not in downloaded_filenames)
+        downloaded_file_names = tuple(os.path.basename(path) for path in downloaded)
+        not_downloaded = (link for link in links if os.path.basename(link) not in downloaded_file_names)
         return not_downloaded
 
     def get_files_downloaded(self):
@@ -120,7 +115,8 @@ class BatchDownloader:
         return tuple(self.links(filtered=filtered))
 
     def links(self, filtered=True):
-        """Returns generator of links that will be downloaded."""
+        """Returns generator of links that will be downloaded, based on files that have already been downloaded
+        and optionally using an IgnoreFilter instance with (if one exists)."""
         not_downloaded = self.get_links_not_downloaded()
         if self.ifilter is None or filtered is False:
             return not_downloaded
@@ -174,19 +170,22 @@ class LinksRetriever():
         self.soup = None
         self.response = None
         if isinstance(url, str):
-            if self.RE_FOURCHAN_URL.search(url) is None:
+            url_found = self.RE_FOURCHAN_URL.search(url)
+            if url_found is None:
                 # Then the file is on the HDD
                 with open(url, 'r', encoding='utf-8') as fh:
                     self.soup = BeautifulSoup(fh, 'lxml')
                 self.thread_url = os.path.expanduser(url)
                 self.from_hdd = True
             else:
-                self.response = requests.get(url)
+                self.response = requests.get(url_found.group())
                 self.soup = BeautifulSoup(self.response.text, 'lxml')
         elif isinstance(url, requests.models.Response):
             # Response object
             self.soup = BeautifulSoup(url.text, 'lxml')
             self.response = url
+        else:
+            raise TypeError('url argument must either be an instance of str or requests.models.Response!')
 
         self.__thread_title = None
         self.__thread_id = None

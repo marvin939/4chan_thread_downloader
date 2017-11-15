@@ -1,14 +1,12 @@
-from tests.useful import *
-from utilities import IgnoreFilter
-import re
-import requests
-import glob
-from retriever import LinksRetriever, BatchDownloader
-import unittest
+from tempfile import TemporaryDirectory
 import os
-import utilities
-from tests.constants import *
+import unittest
 
+import utilities
+from retriever import LinksRetriever, BatchDownloader
+from utilities import IgnoreFilter
+from tests.constants import *
+from tests.useful import *
 
 class BatchDownloaderInstantiateTestCase(unittest.TestCase):
 
@@ -205,7 +203,6 @@ class ThreadDownloaderWithIgnoreFilteringTestCase(unittest.TestCase):
 
 class ThreadDownloaderInstantiateFromExistingFolder(unittest.TestCase):
     def setUp(self):
-        from tempfile import TemporaryDirectory
         self.links_retriever = None
         self.tmpdir = TemporaryDirectory(dir=TMP_DIRECTORY)
         # self.existing_directory = os.path.join(TMP_DIRECTORY, 'temp_download_dir')
@@ -215,7 +212,7 @@ class ThreadDownloaderInstantiateFromExistingFolder(unittest.TestCase):
         self.createTestEnvironment(self.existing_directory)
 
     def createTestEnvironment(self, dirname):
-        createTestEnvironment(dirname, self.num_files_to_download)
+        create_test_environment(dirname, self.num_files_to_download)
 
     def test_instantiate_from_existing_folder(self):
         """Downloader can instantiate self from an existing folder if that folder has a thread_details.pkl file that it can load,
@@ -224,8 +221,15 @@ class ThreadDownloaderInstantiateFromExistingFolder(unittest.TestCase):
         downloader = BatchDownloader.from_directory(self.existing_directory)
         self.assertIsNotNone(downloader)
         self.assertIsNotNone(downloader.links_retriever)
+        self.assertIsNotNone(downloader.ifilter)
 
     def test_num_downloaded(self):
         downloader = BatchDownloader.from_directory(self.existing_directory)
         downloaded = downloader.get_files_downloaded()
         self.assertEqual(len(downloaded), self.num_files_to_download)
+
+    def test_attempt_to_instantiate_on_directory_without_pickle_file(self):
+        tempdir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        with self.assertRaises(FileNotFoundError):
+            downloader = BatchDownloader.from_directory(tempdir.name)
+

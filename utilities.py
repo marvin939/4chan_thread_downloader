@@ -35,7 +35,7 @@ def download_file(url, directory='.', filename=None, overwrite=False, silent=Fal
     save_path = os.path.join(directory, save_as)
 
     if os.path.exists(save_path) and not overwrite:
-        raise FileExistsError('Overwrite is disabled, and {} already exists!', save_path)
+        raise FileExistsError('Overwrite is disabled, and {} already exists!'.format(save_path))
 
     if not os.path.exists(directory):
         os.makedirs(directory, exist_ok=True)

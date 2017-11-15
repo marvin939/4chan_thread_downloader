@@ -1,11 +1,12 @@
-import unittest
-import utilities
 import os
 import shutil
-from retriever import *
-from tests.constants import *
-from utilities import IgnoreFilter
+import unittest
 from tempfile import TemporaryDirectory
+
+import utilities
+from retriever import *
+from utilities import IgnoreFilter
+from tests.constants import *
 
 
 class UrlIsAccessibleTestCase(unittest.TestCase):
