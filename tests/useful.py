@@ -2,7 +2,7 @@ from tests.constants import *
 from retriever import *
 
 
-def create_test_environment(dirname, num_files_to_download, url=TEST_THREAD_FILENAME):
+def create_test_environment(dirname, num_files_to_download=0, url=TEST_THREAD_FILENAME):
     utilities.create_directory_tree(dirname)
 
     # Create pickle
