@@ -246,11 +246,10 @@ class ProgramExecuteCommandsTestCase(unittest.TestCase):
         p.reload_config()
         self.assertNotIn(self.thread_dir.name, p.recent_threads)
 
-    @unittest.skip
-    def test_synchronise_recent_threads_config_gets_updated(self):
-        cli_input = '-s'
-        parser = CLIParser().parse_str(cli_input)
-        p = Program(load_config=True)
-        # p.start()
-        self.assertIsNotNone(p.recent_threads)
-        self.assertGreater(len(p.recent_threads), 0)
+    def test_download_to_default_dir(self):
+        cli_input = '{}'.format(STICKY_THREAD_URL)
+        pass
+
+
+class SynchroniseRecentTestCase(unittest.TestCase):
+    pass

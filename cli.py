@@ -144,18 +144,23 @@ class Program:
         add_to_recent = False
 
         if self.state is self.State.DOWNLOAD_TO_DIRECTORY:
-            add_to_recent = True
             downloader = BatchDownloader.from_directory(self.download_destination)
-            if downloader.links_retriever.thread_is_dead():
-                add_to_recent = False
+            add_to_recent = not downloader.links_retriever.thread_is_dead()
+
         elif self.state is self.State.SYNCHRONISE_DIRECTORY:
-            add_to_recent = True
             downloader = BatchDownloader.from_directory(self.download_destination)
-            if downloader.links_retriever.thread_is_dead():
-                add_to_recent = False
+            add_to_recent = not downloader.links_retriever.thread_is_dead()
+
         elif self.state is self.State.SYNCHRONISE_RECENT:
             pass
+
         elif self.state is self.State.DOWNLOAD_TO_DEFAULT:
+            '''
+            Links retriever
+            Get thread board and id -- refactor the code for retrieving title, board, and id
+            Create directory
+            Download to directory
+            '''
             pass
 
         if downloader and download:

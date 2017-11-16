@@ -189,7 +189,7 @@ class LinksRetriever():
 
         self.__thread_title = None
         self.__thread_id = None
-        self.__thread_board_name = None
+        self.__thread_board_initials = None
 
         self.files_links = []
 
@@ -210,51 +210,75 @@ class LinksRetriever():
     def title(self):
         return self.get_title()
 
-    def retrieve_board_name(self):
-        if self.__thread_board_name is not None:
-            return self.__thread_board_name
+    def retrieve_board_initials(self):
+        if self.__thread_board_initials is not None:
+            return self.__thread_board_initials
 
-        board = ""
-        if self.thread_url is not None:
-            board_match = self.RE_FOURCHAN_URL.search(self.thread_url)
-            if board_match is not None:
-                board = board_match.group("board")
-                self.__thread_board_name = board
-        return board
+        def div_board_initials(tag):
+            """
+            Look for this element:
+            <div class="boardTitle">/wg/ - Wallpapers/General</div>
+            """
+            if tag.name != 'div':
+                return False
+            if not tag.has_attr('class'):
+                return False
+            if 'boardTitle' not in tag['class']:
+                return False
+            return True
+
+        for found in self.soup.find(div_board_initials):
+            # Example: /wg/ - Wallpapers/General
+            self.__thread_board_initials = re.match('^/(?P<initials>\w+)/', found.string).group('initials')
+            if self.__thread_board_initials:
+                break
+            else:
+                raise self.ElementNotFound('Cannot find board initials div element!')
+
+        return self.__thread_board_initials
 
     @property
-    def board_name(self):
-        return self.retrieve_thread_id()
+    def board_initials(self):
+        return self.retrieve_board_initials()
 
     def retrieve_thread_id(self):
         if self.__thread_id is not None:
             return self.__thread_id
 
-        tid = ""
-        if self.thread_url is not None:
-            matches = self.RE_FOURCHAN_URL.search(self.thread_url)
+        def thread_id_matcher(tag):
+            """
+            Look for this element:
+            <div class="thread" id="t7027515"> ... </div>
+            """
+            if tag.name != 'div':   # Don't use 'is' and 'is not' operator with tag objects!
+                return False
+            if not tag.has_attr('class'):
+                return False
+            if 'thread' not in tag['class']:
+                return False
+            return True
 
-            if matches is not None:
-                tid = matches.group("thread_id")
-                self.self.__thread_id = tid
-        return tid
+        found = self.soup.find_all(thread_id_matcher)
+        for thread_div in found:
+            if thread_div.has_attr('id'):
+                # Thread id is prefixed with 't'. eg. 't12345678'; only interestded in numbers
+                match = re.search('\d+$', thread_div['id']).group()
+                if match:
+                    self.__thread_id = match
+                    break
+                else:
+                    raise self.ElementNotFound('Cannot find thread div.')
+
+        return self.__thread_id
 
     @property
     def thread_id(self):
         return self.retrieve_thread_id()
 
-    @thread_id.setter
-    def thread_id(self, new_val):
-        self.__thread_id = new_val
+    class ElementNotFound(BaseException):
+        pass
 
-    def __post_has_media_file(self, tag):
-        if tag.name == "a" and tag.has_attr("class"):
-            for classVal in tag["class"]:
-                if classVal == "fileThumb":
-                    return True
-        return False
-
-    def __get_media_url(self, link):
+    def get_media_url(self, link):
         m = self.RE_MEDIA_URL.search(link)
         res = m.group()
         if res is not None:
@@ -265,9 +289,16 @@ class LinksRetriever():
         if len(self.files_links) > 0:
             return self.files_links
 
+        def post_has_media_file(tag):
+            if tag.name == "a" and tag.has_attr("class"):
+                for classVal in tag["class"]:
+                    if classVal == "fileThumb":
+                        return True
+            return False
+
         self.files_links = []
-        for media in self.soup.find_all(self.__post_has_media_file):
-            self.files_links.append(self.__get_media_url(media["href"]))
+        for media in self.soup.find_all(post_has_media_file):
+            self.files_links.append(self.get_media_url(media["href"]))
 
         return self.files_links
 

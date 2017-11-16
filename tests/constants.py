@@ -5,8 +5,9 @@ import utilities
 STICKY_THREAD_URL = 'http://boards.4chan.org/wg/thread/6872254'
 THREAD_URL = 'http://boards.4chan.org/wg/thread/7027515'
 REAL_THREAD_URL = THREAD_URL
-THREAD_ID = '7027515'
-EXPECTED_THREAD_TITLE = '/wg/ - Minimalistic papes - Wallpapers/General - 4chan'
+EXPECTED_BOARD_INITIALS = 'wg'
+EXPECTED_THREAD_ID = '7027515'
+EXPECTED_THREAD_HTML_TITLE = '/wg/ - Minimalistic papes - Wallpapers/General - 4chan'
 SOME_THREAD_FILE_URLS = ['http://i.4cdn.org/wg/1507921740712.jpg', 'https://i.4cdn.org/wg/1506628360792.png']
 
 
