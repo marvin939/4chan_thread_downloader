@@ -13,32 +13,25 @@ class CliParserTestCase(unittest.TestCase):
         self.parser = CLIParser()
         self.tempdir = TemporaryDirectory(dir=TMP_DIRECTORY)
 
-    # def tearDown(self):
-    #     self.parser.parser.print_help()
+    @unittest.skip
+    def test_directory_only(self):
+        """Should crash when there's only a directory."""
 
-    def test_destination_directory(self):
         input = '--directory {}'.format(self.tempdir.name)
         returned = self.parser.parse_str(input)
         self.assertEqual(returned.directory, self.tempdir.name)
-        self.assertTrue(os.path.exists(returned.directory))
 
-    # def test_invalid_multiple_destination_directory(self):
-    #     input = '--directory {0} {0}'.format(self.tempdir.name)
-    #     with self.assertRaises(SystemExit):  # I don't know what type of error...
-    #         returned = self.parser.parse(input)
-
-    def test_url(self):
-        url = self.tempdir.name
-        input = '{0} --directory {1}'.format(url, self.tempdir.name)
+    def test_download_to_directory_with_url(self):
+        input = '{0} --directory {1}'.format(STICKY_THREAD_URL, self.tempdir.name)
         returned = self.parser.parse_str(input)
-        self.assertEqual(returned.url, url)
+        self.assertIn(STICKY_THREAD_URL, returned.urls)
+        # self.assertTrue(STICKY_THREAD_URL in returned.urls)
 
-    def test_invalid_multiple_urls(self):
-        url = self.tempdir.name
-        input = '{0} {0} --directory {1}'.format(url, self.tempdir.name)
-        with self.assertRaises(SystemExit):
-            returned = self.parser.parse_str(input)
-            print('URL returned:', returned.url)
+    def test_single_url(self):
+        cli_input = '{}'.format(STICKY_THREAD_URL)
+        parsed = self.parser.parse_str(cli_input)
+        print('parsed urls:', parsed.urls)
+        self.assertIn(STICKY_THREAD_URL, parsed.urls)
 
     def test_synchronize_argument(self):
         input = '-s'
@@ -66,10 +59,22 @@ class CliParserTestCase(unittest.TestCase):
     #     self.assertTrue(returned.sync_recent)
         """I think i'm better off just using "-s" alone for synchronizing recently downloaded threads"""
 
-    def test_mutual_exclusion_url_and_sync(self):
-        input = '{} -s'.format(self.tempdir.name)
-        with self.assertRaises(SystemExit):
-            returned = self.parser.parse_str(input)
+    # def test_mutual_exclusion_url_and_sync(self):
+    #     input = '{} -s'.format(self.tempdir.name)
+    #     with self.assertRaises(SystemExit):
+    #         returned = self.parser.parse_str(input)
+
+    def test_many_urls(self):
+        cli_input = '{0} {0} {0}'.format(STICKY_THREAD_URL)
+        parsed = CLIParser().parse_str(cli_input)
+        self.assertEqual(len(parsed.urls), 3)
+        # self.assertGreater(len(parsed.urls), 0)
+
+    def test_many_urls_with_directory(self):
+        cli_input = '{0} {0} {0} -d {1}'.format(STICKY_THREAD_URL, TMP_DIRECTORY)
+        parsed = CLIParser().parse_str(cli_input)
+        self.assertEqual(len(parsed.urls), 3)
+        self.assertEqual(parsed.directory, TMP_DIRECTORY)
 
 
 class ProgramCLIArgsTestCase(unittest.TestCase):

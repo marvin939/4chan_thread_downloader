@@ -10,17 +10,22 @@ PROGRAM_NAME = '4tdl.py'
 
 
 class CLIParser:
+
     def __init__(self):
         self.parser = argparse.ArgumentParser(prog=PROGRAM_NAME,
                                               description='Downloads a thread from 4Chan using URL or an HTML locally.')
         self.parser.add_argument('-d', '--directory',
                                  nargs='?',
                                  help="Destination directory of the thread's contents")
+        self.parser.add_argument('urls',
+                                 type=str,
+                                 nargs='*',
+                                 help="URLs/locations of the threads to be downloaded.")
         mutual_group = self.parser.add_mutually_exclusive_group()
-        mutual_group.add_argument('url',
-                                  type=str,
-                                  nargs='?',
-                                  help="URL/location of the thread to be downloaded.")
+        # mutual_group.add_argument('urls',
+        #                           # type=str,
+        #                           nargs='*',
+        #                           help="URL/location of the thread to be downloaded.")
         mutual_group.add_argument('-s', '--synchronise',
                                   action='store_true',
                                   default=False,
@@ -158,10 +163,13 @@ class Program:
             '''
             Links retriever
             Get thread board and id -- refactor the code for retrieving title, board, and id
+            Generate folder name from default, board initials, and id: DEFAULT/INITIALS/ID
             Create directory
             Download to directory
             '''
             pass
+        else:
+            return
 
         if downloader and download:
             downloader.start_download()
@@ -172,3 +180,6 @@ class Program:
         if write_config:
             # self.recent_threads = list([thread for thread in self.recent_threads if BatchDownloader.from_directory(thread).links_retriever.thread_is_dead()])
             self.save_config()
+
+    def download_threads(self, threads):
+        pass
