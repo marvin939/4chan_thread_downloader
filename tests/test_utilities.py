@@ -1,7 +1,8 @@
+import json
 import os
 import shutil
 import unittest
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, TemporaryFile
 
 import utilities
 from retriever import *
@@ -207,3 +208,20 @@ class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
         test_list = ['123456.png', '123456.jpg', '6789.png']    # only 1 jpg; 2 pngs
         filtered = tuple(fil.filter(test_list))
         self.assertEqual(len(filtered), 1)
+
+
+class LoadJSONTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.config_path = os.path.join(self.tempdir.name, 'config.json')
+        self.json_obj = {'ABC': 123,
+                         'DEF': 'GHI'}
+
+        with open(self.config_path, 'w') as f:
+            json.dump(self.json_obj, f)
+
+    def test_load_json_dict(self):
+        """Check if load_json has the right contents stored in it"""
+        config_dict = utilities.json_from_path(self.config_path)
+        self.assertIsNotNone(config_dict)
+        self.assertEqual(self.json_obj, config_dict)

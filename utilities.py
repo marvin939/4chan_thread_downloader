@@ -1,3 +1,4 @@
+import json
 import re
 import requests
 import os
@@ -144,7 +145,7 @@ class IgnoreFilter:
 
     @staticmethod
     def filter_with_regexp_list(items, regexp_list):
-        filtered = list()
+        # filtered = list()
         for item in items:
             add_item = True
             for regexp in regexp_list:
@@ -154,3 +155,10 @@ class IgnoreFilter:
                     break
             if add_item:
                 yield item
+
+
+def json_from_path(path):
+    # json_obj = None
+    with open(path, encoding='utf-8') as f:
+        json_obj = json.load(f)
+    return json_obj

@@ -9,6 +9,7 @@ from concurrent import futures
 
 
 class BatchDownloader:
+    DEBUG = False
     THREAD_SAVE_NAME = 'thread.html'
     THREAD_DETAILS_FILENAME = 'thread_details.pkl'  # pickle
     IGNORE_LIST_FILENAME = 'ignore_list.txt'
@@ -32,12 +33,13 @@ class BatchDownloader:
                 print('skipping {}...'.format(url))
             return save_path
 
-        with futures.ThreadPoolExecutor() as executor:
-            jobs = []
-            for url in self.links():
-                jobs += [executor.submit(download_url, url)]
-            # if len(jobs) > 0:
-            futures.wait(jobs)  #, futures.ALL_COMPLETED)
+        if not self.DEBUG:
+            with futures.ThreadPoolExecutor() as executor:
+                jobs = []
+                for url in self.links():
+                    jobs += [executor.submit(download_url, url)]
+                # if len(jobs) > 0:
+                futures.wait(jobs)  #, futures.ALL_COMPLETED)
 
         self.pickle_details()
 

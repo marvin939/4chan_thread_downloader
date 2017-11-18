@@ -1,14 +1,17 @@
+from retriever import BatchDownloader, LinksRetriever
+from tempfile import TemporaryDirectory, TemporaryFile
 from cli import Program
 from tests.constants import *
 from climan import *
+from tests.useful import create_test_environment
 import unittest
 
 
-class CLIManTestCase(unittest.TestCase):
+class CLIManArgumentParsingTestCase(unittest.TestCase):
     def setUp(self):
         self.climan = CLIMan()
         # self.climan.print_help()
-        self.climan.parser.print_help()
+        # self.climan.parser.print_help()
 
     # def test_parse_mode(self):
     #     # cli_input = 'download {url}'.format(url=STICKY_THREAD_URL)
@@ -57,12 +60,6 @@ class CLIManTestCase(unittest.TestCase):
         self.assertEqual(args.dir, TMP_DIRECTORY)
         # print('Args:', args)
 
-    def test_mode_syncrecent(self):
-        cli_input = 'sync-recent'
-        with self.assertRaises(NotImplementedError):
-            args = self.climan.parse_string(cli_input)
-            args.func(args)
-
     def test_mode_setting_view_option_value(self):
         # alias
         max_recent = Program.OPTION_NAME_MAX_RECENT_THREADS
@@ -72,6 +69,7 @@ class CLIManTestCase(unittest.TestCase):
         self.assertEqual(args.option_name, max_recent)
 
     def test_mode_settings_change_option(self):
+        """Test parsed new value after changing a setting"""
         max_recent = Program.OPTION_NAME_MAX_RECENT_THREADS
         new_val = 20
 
@@ -80,22 +78,254 @@ class CLIManTestCase(unittest.TestCase):
         self.assertEqual(args.option_name, max_recent)
         self.assertEqual(int(args.option_value), new_val)   # need to case in int since it's string
 
+    def test_mode_settings_option_choices(self):
+        """Test that the choice parameter works on setting sub-command"""
+        cli_inputs = tuple(('{cmd} {opt}'.format(cmd=CLIMan.COMMAND_SETTING, opt=option) for option in CLIMan.SETTINGS))
+        for cli_input in cli_inputs:
+            with self.subTest():
+                args = self.climan.parse_string(cli_input)
+                self.assertIn(args.option_name, CLIMan.SETTINGS)
 
-    # def test_mode_syncrecent(self):
-    #     cli_input = 'sync-recent'
-    #     args = self.climan.parse_string(cli_input)
-    #     self.assertTrue(args.sync_recent)
+    def test_mode_settings_invalid_choice(self):
+        cli_input = '{cmd} potaters'.format(cmd=CLIMan.COMMAND_SETTING)
+        with self.assertRaises(SystemExit):
+            args = self.climan.parse_string(cli_input)
 
 
-# Testing other argparse functionality.
-#     def test_hi_arg(self):
-#         cli_input = '--hi'
-#         args = self.climan.parse_string(cli_input)
-#
-#     def test_higher_arg(self):
-#         cli_input = '--hi wassup'
-#         args = self.climan.parse_string(cli_input)
-#
-#     def test_higher_arg_b(self):
-#         cli_input = '--hi "wassup man!"'
-#         args = self.climan.parse_string(cli_input)
+class CLIManLoadSetSaveConfig(unittest.TestCase):
+    def setUp(self):
+        self.temp_config_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.temp_download_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        CLIMan.CONFIG_DIR = self.temp_config_dir.name
+        CLIMan.DEFAULT_DOWNLOAD_DIR = self.temp_download_dir.name
+        self.climan = CLIMan()
+
+        # Create a config file at temp_config_dir
+        self.climan.save_config()
+
+    def test_config_path(self):
+        self.assertEqual(CLIMan.config_path(), os.path.join(CLIMan.CONFIG_DIR, CLIMan.CONFIG_NAME))
+
+    def test_save_config_file_exists(self):
+        self.climan.save_config()
+        self.assertTrue(os.path.exists(self.climan.config_path()))
+
+    def test_load_json_dict(self):
+        """Check if load_json has the right contents stored in it"""
+        config_dict = utilities.json_from_path(CLIMan.config_path())
+        self.assertIsNotNone(config_dict)
+        self.assertEqual(set(CLIMan.SETTINGS), set(config_dict.keys()))
+
+    def test_set_config(self):
+        # Constants to replace climan instance's option variables to demonstrate set_config
+        ddir = '~/Downloads/t0/'
+        maxthreads = 123
+        recent_threads = ['~/Downloads/t1', '~/Downloads/t2', '~/Downloads/t3']
+
+        self.climan.DEFAULT_DOWNLOAD_DIR = ddir
+        self.climan.DEFAULT_MAX_RECENT_THREADS = maxthreads
+        self.climan.recent_threads = recent_threads
+
+        self.climan.configure(utilities.json_from_path(self.climan.config_path()))
+
+        self.assertIsNotNone(self.climan.DEFAULT_DOWNLOAD_DIR)
+        self.assertIsNotNone(self.climan.DEFAULT_MAX_RECENT_THREADS)
+        self.assertIsNotNone(self.climan.recent_threads)
+
+        self.assertNotEqual(self.climan.DEFAULT_DOWNLOAD_DIR, ddir)
+        self.assertNotEqual(self.climan.DEFAULT_MAX_RECENT_THREADS, maxthreads)
+        self.assertNotEqual(self.climan.recent_threads, recent_threads)
+
+    def test_set_config_with_missing_keys(self):
+        """Make sure that CLIMan's configure function raises KeyError when there are missing keys"""
+        config_dict = {'ABC': 123,
+                       'DEF': 'GHI'}
+        with self.assertRaises(KeyError):
+            self.climan.configure(config_dict)
+
+    def test_reload_config_not_load_settings_if_config_is_missing(self):
+        os.remove(CLIMan.config_path())
+
+        self.climan.reload_config()
+        self.assertEqual(self.climan.DEFAULT_DOWNLOAD_DIR, CLIMan.DEFAULT_DOWNLOAD_DIR)
+        self.assertEqual(self.climan.DEFAULT_MAX_RECENT_THREADS, CLIMan.DEFAULT_MAX_RECENT_THREADS)
+        self.assertEqual(self.climan.recent_threads, [])
+
+
+class CLIManDownloadSubCommandTestCase(unittest.TestCase):
+    def setUp(self):
+        self.download_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.config_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        CLIMan.CONFIG_DIR = self.config_dir.name
+        CLIMan.DEBUG = True
+        self.climan = CLIMan()
+        self.input_format = '{subcmd} {url} -d {dir}'
+        self.cli_input = self.input_format.format(subcmd=CLIMan.COMMAND_DOWNLOAD, url=THREAD_URL,
+                                                  dir=self.download_dir.name)
+        self.climan.save_config()
+
+    def test_download_to_directory_sub_command(self):
+        args = self.climan.parse_string(self.cli_input)
+        # print('type of args:', type(args))
+
+        self.assertEqual(args.func, self.climan.cli_download_to_directory)
+        downloaded_dir = args.func(args)
+
+        thread_details_path = os.path.join(downloaded_dir, BatchDownloader.THREAD_DETAILS_FILENAME)
+        self.assertTrue(os.path.exists(thread_details_path))
+
+    def test_download_to_directory_added_to_recent_threads(self):
+        args = self.climan.parse_string(self.cli_input)
+        thread_dir = args.func(args)
+        self.assertIn(thread_dir, self.climan.recent_threads)
+
+    def test_dead_thread_added_to_recent(self):
+        """Dead threads should not be added to recent threads variable"""
+        cli_input = self.input_format.format(subcmd=CLIMan.COMMAND_DOWNLOAD, url=TEST_THREAD_FILENAME, dir=self.download_dir.name)
+        args = self.climan.parse_string(cli_input)
+        thread_dir = args.func(args)
+        self.assertNotIn(thread_dir, self.climan.recent_threads)
+
+    def test_config_updated_after_download(self):
+        cli_input = self.input_format.format(subcmd=CLIMan.COMMAND_DOWNLOAD, url=STICKY_THREAD_URL,
+                                             dir=self.download_dir.name)
+        args = self.climan.parse_string(cli_input)
+        thread_dir = args.func(args)
+        config_dict = utilities.json_from_path(self.climan.config_path())
+        self.assertIn(thread_dir, config_dict[CLIMan.OPTION_RECENT_THREADS])
+
+
+class CLIManDownloadDirectoryDefaultGenerate(unittest.TestCase):
+    def setUp(self):
+        self.default_download_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.config_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        CLIMan.DEBUG = True
+        CLIMan.CONFIG_DIR = self.config_dir.name
+        CLIMan.DEFAULT_DOWNLOAD_DIR = self.default_download_dir.name
+        self.climan = CLIMan()
+
+    def test_download_thread_default_directory(self):
+        """CLIMan with download command and no specified directory will generate a new directory based on
+        the board initials and thread ID of the thread to be downloaded."""
+        cli_input = '{subcmd} {url}'.format(subcmd=CLIMan.COMMAND_DOWNLOAD, url=TEST_THREAD_FILENAME)
+        print('cli_input:', repr(cli_input))
+        args = self.climan.parse_string(cli_input)
+        self.assertIsNone(args.dir)
+
+        thread_dir = args.func(args)
+        self.assertIsNotNone(thread_dir)
+        print('thread_dir:', thread_dir)
+
+        details_path = os.path.join(thread_dir, BatchDownloader.THREAD_DETAILS_FILENAME)
+        self.assertTrue(os.path.exists(details_path))
+
+
+class CLIManSyncDirSubCommandTestCase(unittest.TestCase):
+    def setUp(self):
+        self.thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.config_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        CLIMan.CONFIG_DIR = self.config_dir.name
+        CLIMan.DEBUG = True
+        self.climan = CLIMan()
+        self.input_format = '{subcmd} {dir}'
+        self.cli_input = self.input_format.format(subcmd=CLIMan.COMMAND_SYNC_DIR, dir=self.thread_dir.name)
+        self.climan.save_config()
+
+        create_test_environment(self.thread_dir.name)
+
+    def test_synchronise_directory(self):
+        args = self.climan.parse_string(self.cli_input)
+        self.assertEqual(args.func, self.climan.cli_synchronise_to_directory)
+        downloaded_dir = args.func(args)
+
+        # Check details pickle existence
+        thread_details_path = os.path.join(downloaded_dir, BatchDownloader.THREAD_DETAILS_FILENAME)
+        self.assertTrue(os.path.exists(thread_details_path))
+
+    def test_synchronise_directory_added_to_recent_threads(self):
+        create_test_environment(self.thread_dir.name, url=STICKY_THREAD_URL)
+        args = self.climan.parse_string(self.cli_input)
+        thread_dir = args.func(args)
+        self.assertIn(thread_dir, self.climan.recent_threads)
+
+    def test_dead_thread_added_to_recent(self):
+        """Dead threads should not be added to recent threads variable"""
+        args = self.climan.parse_string(self.cli_input)
+        thread_dir = args.func(args)
+        self.assertNotIn(thread_dir, self.climan.recent_threads)
+
+    def test_config_updated_after_download(self):
+        create_test_environment(self.thread_dir.name, url=STICKY_THREAD_URL)
+
+        args = self.climan.parse_string(self.cli_input)
+        thread_dir = args.func(args)
+        config_dict = utilities.json_from_path(self.climan.config_path())
+        self.assertIn(thread_dir, config_dict[CLIMan.OPTION_RECENT_THREADS])
+
+
+class CLIManSyncRecentTestCase(unittest.TestCase):
+    def setUp(self):
+        self.dead_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.alive_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.config_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        CLIMan.CONFIG_DIR = self.config_dir.name
+        CLIMan.DEBUG = True
+        self.climan = CLIMan()
+        self.input_format = '{subcmd} {dir}'
+        self.cli_input = CLIMan.COMMAND_SYNC_RECENT
+
+        create_test_environment(self.dead_thread_dir.name, url=TEST_THREAD_FILENAME)   # Creates a dead thread
+        # Pretend that the dead thread is still alive
+        create_test_environment(self.alive_thread_dir.name, url=STICKY_THREAD_URL)
+        self.climan.recent_threads += [self.dead_thread_dir.name, self.dead_thread_dir.name, self.dead_thread_dir.name,
+                                       self.dead_thread_dir.name, self.alive_thread_dir.name]
+        self.climan.save_config()   # For loading purposes later
+
+    def test_correct_default_function(self):
+        args = self.climan.parse_string(self.cli_input)
+        self.assertEqual(args.func, self.climan.cli_synchronise_recent_threads)
+
+    def test_sync_recent(self):
+        cli_input = CLIMan.COMMAND_SYNC_RECENT
+        args = self.climan.parse_string(self.cli_input)
+        args.func(args)
+        self.assertNotIn(self.dead_thread_dir.name, self.climan.recent_threads)
+        self.assertIn(self.alive_thread_dir.name, self.climan.recent_threads)
+
+    def test_sync_recent_update_config(self):
+        args = self.climan.parse_string(self.cli_input)
+        args.func(args)
+        config_dict = utilities.json_from_path(self.climan.config_path())
+        self.assertNotIn(self.dead_thread_dir.name, config_dict[CLIMan.OPTION_RECENT_THREADS])
+        self.assertIn(self.alive_thread_dir.name, config_dict[CLIMan.OPTION_RECENT_THREADS])
+
+
+class CLIManMaxRecentThreadsExceeded(unittest.TestCase):
+    def setUp(self):
+        self.dead_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.alive_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.config_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        CLIMan.CONFIG_DIR = self.config_dir.name
+        CLIMan.DEBUG = True
+        self.climan = CLIMan()
+        # dead threads will fill in the recents, since the alive thread will be used as a unique element. The function
+        # recent_threads_add doesn't add non-unique elements, so we have to force adding (next line)
+        self.climan.recent_threads = [self.dead_thread_dir.name] * self.climan.DEFAULT_MAX_RECENT_THREADS
+        print('recent_threads:', self.climan.recent_threads)
+
+    def test_add_recent_exceed(self):
+        """The idea is that when the number of recent threads exceed the config's maximum,
+        the list pop the first element off, before adding the new one in"""
+        self.assertEqual(len(self.climan.recent_threads), self.climan.DEFAULT_MAX_RECENT_THREADS)
+        downloader = BatchDownloader(LinksRetriever(STICKY_THREAD_URL), self.alive_thread_dir.name)
+        self.climan.recent_threads_add(downloader)
+
+        # Still the same length
+        self.assertEqual(len(self.climan.recent_threads), self.climan.DEFAULT_MAX_RECENT_THREADS)
+
+        # The alive thread is the last element
+        self.assertEqual(self.climan.recent_threads[-1], self.alive_thread_dir.name)
+
+
+class CLIManSettingSubCommandTestCase(unittest.TestCase):
+    pass

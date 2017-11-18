@@ -8,6 +8,8 @@ from utilities import IgnoreFilter
 from tests.constants import *
 from tests.useful import *
 
+# todo: Speed up some of the tests...
+
 class BatchDownloaderInstantiateTestCase(unittest.TestCase):
 
     # def test_instantiate_with_non_iterable(self):
