@@ -69,6 +69,7 @@ class CLIMan:
                                                     help='Modify/view downloader settings')
         setting_parser.add_argument('option_name', type=str, help='Option name', choices=self.SETTINGS)
         setting_parser.add_argument('option_value', nargs='?', help='New value of option')
+        setting_parser.set_defaults(func=self.cli_settings)
 
         self.reload_config()
 
@@ -79,6 +80,19 @@ class CLIMan:
         :return: Namespace object containing the parsed command line arguments
         """
         return self.parser.parse_args(args=args_string.split())
+
+    def cli_settings(self, args):
+        if args.option_name == self.OPTION_MAX_RECENT_THREADS:
+            if args.option_value is not None:
+                self.DEFAULT_MAX_RECENT_THREADS = int(args.option_value)
+            else:
+                return self.DEFAULT_MAX_RECENT_THREADS
+        elif args.option_name == self.OPTION_DOWNLOAD_DIR:
+            if args.option_value is not None:
+                self.DEFAULT_DOWNLOAD_DIR = str(args.option_value)
+            else:
+                return self.DEFAULT_DOWNLOAD_DIR
+        return
 
     def cli_synchronise_recent_threads(self, args):
         pop_list = []

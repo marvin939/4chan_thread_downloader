@@ -347,4 +347,54 @@ class CLIManMaxRecentThreadsExceeded(unittest.TestCase):
 
 
 class CLIManSettingSubCommandTestCase(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.config_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        CLIMan.CONFIG_DIR = self.config_dir.name
+        CLIMan.DEBUG = True
+        self.climan = CLIMan()
+        self.set_format = '{sub} {opt} {val}'
+        self.get_format = '{sub} {opt}'
+
+    def test_subcommand_with_option_name_and_value(self):
+        '''This test has already been done before'''
+        option = CLIMan.OPTION_MAX_RECENT_THREADS
+        new_value = 100
+        cli_input = self.set_format.format(sub=CLIMan.COMMAND_SETTING, opt=option, val=new_value)
+        args = self.climan.parse_string(cli_input)
+        self.assertEqual(args.option_name, CLIMan.OPTION_MAX_RECENT_THREADS)
+        self.assertEqual(int(args.option_value), new_value)
+
+    def test_correct_function_returned(self):
+        cli_input = self.set_format.format(sub=CLIMan.COMMAND_SETTING, opt=CLIMan.OPTION_MAX_RECENT_THREADS, val=100)
+        args = self.climan.parse_string(cli_input)
+        self.assertEqual(args.func, self.climan.cli_settings)
+
+    def test_option_set_max_recent_threads(self):
+        cli_input = self.set_format.format(sub=CLIMan.COMMAND_SETTING, opt=CLIMan.OPTION_MAX_RECENT_THREADS,
+                                               val=100)
+        args = self.climan.parse_string(cli_input)
+        args.func(args)
+        self.assertEqual(self.climan.DEFAULT_MAX_RECENT_THREADS, int(args.option_value))
+
+    def test_option_get_max_recent_threads(self):
+        cli_input = self.get_format.format(sub=CLIMan.COMMAND_SETTING, opt=CLIMan.OPTION_MAX_RECENT_THREADS)
+        args = self.climan.parse_string(cli_input)
+        new_max = args.func(args)
+        self.assertEqual(new_max, self.climan.DEFAULT_MAX_RECENT_THREADS)
+
+    def test_option_set_default_download_dir(self):
+        new_download_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        cli_input = self.set_format.format(sub=CLIMan.COMMAND_SETTING, opt=CLIMan.OPTION_DOWNLOAD_DIR,
+                                               val=new_download_dir.name)
+        args = self.climan.parse_string(cli_input)
+        args.func(args)
+        self.assertEqual(self.climan.DEFAULT_DOWNLOAD_DIR, new_download_dir.name)
+
+    def test_option_get_default_download_dir(self):
+        cli_input = self.get_format.format(sub=CLIMan.COMMAND_SETTING, opt=CLIMan.OPTION_DOWNLOAD_DIR)
+        args = self.climan.parse_string(cli_input)
+        download_dir = args.func(args)
+        self.assertEqual(download_dir, self.climan.DEFAULT_DOWNLOAD_DIR)
+
+    def test_new_settings_get_saved(self):
+        return
