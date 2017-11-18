@@ -38,7 +38,8 @@ class UrlRetrievalTestCase(unittest.TestCase):
 
 class DownloadUrlTestCase(unittest.TestCase):
     def setUp(self):
-        self.directory = os.path.expanduser('~/Downloads/')
+        self.download_directory = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.directory = self.download_directory.name
         self.filename = 'banner123.png'
         self.destination = os.path.join(self.directory, self.filename)
         self.url = 'http://s.4cdn.org/image/title/167.png'
@@ -60,7 +61,9 @@ class DownloadUrlTestCase(unittest.TestCase):
 
     def test_download_with_filename_and_directory(self):
         expected_destination = utilities.download_file(self.url, self.directory, self.filename)
-        self.assertEqual(expected_destination, os.path.join(self.directory, self.filename))
+        # self.assertEqual(expected_destination, os.path.join(self.directory, self.filename))
+        self.assertTrue(os.path.exists(expected_destination))
+        self.assertTrue(os.path.join(self.directory, self.filename))
         self.assertEqual(os.path.basename(expected_destination), self.filename)
         # print(expected_destination)
 
@@ -72,6 +75,10 @@ class DownloadUrlTestCase(unittest.TestCase):
                 shutil.rmtree(self.destination)
         if os.path.exists(self.filename):
             os.remove(self.filename)
+
+        default_filename = os.path.basename(self.url)
+        if os.path.exists(default_filename):
+            os.remove(default_filename)
 
 
 class DownloadUrlOverrideFileTestCase(unittest.TestCase):
