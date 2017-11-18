@@ -283,6 +283,8 @@ class CLIManSyncDirSubCommandTestCase(unittest.TestCase):
 
 
 class CLIManSyncRecentTestCase(unittest.TestCase):
+    """Test sync-recent sub-command"""
+
     def setUp(self):
         self.dead_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
         self.alive_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
@@ -397,4 +399,13 @@ class CLIManSettingSubCommandTestCase(unittest.TestCase):
         self.assertEqual(download_dir, self.climan.DEFAULT_DOWNLOAD_DIR)
 
     def test_new_settings_get_saved(self):
-        return
+        self.climan.save_config()   # Force create a new config
+
+        cli_input = self.set_format.format(sub=CLIMan.COMMAND_SETTING, opt=CLIMan.OPTION_MAX_RECENT_THREADS,
+                                               val=100)
+        args = self.climan.parse_string(cli_input)
+        args.func(args)  # internally, change some properties
+
+        # Load the settings and compare
+        config_dict = utilities.json_from_path(self.climan.config_path())
+        self.assertEqual(config_dict[CLIMan.OPTION_MAX_RECENT_THREADS], int(args.option_value))

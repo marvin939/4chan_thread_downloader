@@ -20,7 +20,7 @@ class CLIMan:
 
     # Settings that can be overwritten by loading a config
     DEFAULT_DOWNLOAD_DIR = os.path.expanduser('~/Downloads/4threads/')
-    DEFAULT_MAX_RECENT_THREADS = 10
+    DEFAULT_MAX_RECENT_THREADS = 20
 
     # Settings name
     OPTION_DOWNLOAD_DIR = 'default_download_directory'
@@ -92,6 +92,9 @@ class CLIMan:
                 self.DEFAULT_DOWNLOAD_DIR = str(args.option_value)
             else:
                 return self.DEFAULT_DOWNLOAD_DIR
+        '''Don't bother with modification of recent threads.'''
+
+        self.save_config()
         return
 
     def cli_synchronise_recent_threads(self, args):
