@@ -8,10 +8,11 @@ from tests.constants import *
 class LinksRetrieverInstantiateTestCase(unittest.TestCase):
 
     def test_create_instance_from_hdd(self):
-        expected_title = '/wg/ - Minimalistic papes - Wallpapers/General - 4chan'
+        #expected_title = '/wg/ - Minimalistic papes - Wallpapers/General - 4chan'
+
         linkser = LinksRetriever('test_thread.html')  # It's in hdd
         self.assertIsNotNone(linkser.soup)
-        self.assertEqual(linkser.soup.title.text, expected_title)
+        self.assertEqual(linkser.soup.title.text, EXPECTED_THREAD_HTML_TITLE)
 
     @unittest.skipUnless(utilities.url_is_accessible(THREAD_URL), THREAD_GONE_REASON)
     def test_create_instance_from_url(self):
@@ -49,7 +50,7 @@ class LinksRetrieverInstantiateTestCase(unittest.TestCase):
 class LinksRetrieverFromHDDTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.retriever = LinksRetriever('test_thread.html')
+        self.retriever = LinksRetriever(TEST_THREAD_FILENAME)
 
     def test_get_thread_id(self):
         id = self.retriever.thread_id

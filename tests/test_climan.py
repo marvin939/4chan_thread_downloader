@@ -1,6 +1,6 @@
 from retriever import BatchDownloader, LinksRetriever
 from tempfile import TemporaryDirectory, TemporaryFile
-from cli import Program
+# from cli import Program
 from tests.constants import *
 from climan import *
 from tests.useful import create_test_environment
@@ -62,7 +62,7 @@ class CLIManArgumentParsingTestCase(unittest.TestCase):
 
     def test_mode_setting_view_option_value(self):
         # alias
-        max_recent = Program.OPTION_NAME_MAX_RECENT_THREADS
+        max_recent = CLIMan.OPTION_MAX_RECENT_THREADS
 
         cli_input = 'setting {option}'.format(option=max_recent)
         args = self.climan.parse_string(cli_input)
@@ -70,7 +70,7 @@ class CLIManArgumentParsingTestCase(unittest.TestCase):
 
     def test_mode_settings_change_option(self):
         """Test parsed new value after changing a setting"""
-        max_recent = Program.OPTION_NAME_MAX_RECENT_THREADS
+        max_recent = CLIMan.OPTION_MAX_RECENT_THREADS
         new_val = 20
 
         cli_input = 'setting {opt} {val}'.format(opt=max_recent, val=new_val)
@@ -150,6 +150,25 @@ class CLIManLoadSetSaveConfig(unittest.TestCase):
         self.assertEqual(self.climan.DEFAULT_DOWNLOAD_DIR, CLIMan.DEFAULT_DOWNLOAD_DIR)
         self.assertEqual(self.climan.DEFAULT_MAX_RECENT_THREADS, CLIMan.DEFAULT_MAX_RECENT_THREADS)
         self.assertEqual(self.climan.recent_threads, [])
+
+
+class CLIManAutoLoadsConfig(unittest.TestCase):
+    def setUp(self):
+        self.temp_config_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.original_max_recent_threads = int(CLIMan.DEFAULT_MAX_RECENT_THREADS)
+        self.new_max = 99
+        CLIMan.CONFIG_DIR = self.temp_config_dir.name
+
+        # Create config
+        self.climan = CLIMan()
+        self.climan.DEFAULT_MAX_RECENT_THREADS = self.new_max # Replace it since it's going to be saved
+        self.climan.save_config()
+
+        self.climan = CLIMan()  # Force reload config
+
+    def test_auto_load_config(self):
+        """Ensure that the CLIMan instance automatically loads its settings upon instantiation"""
+        self.assertEqual(self.climan.DEFAULT_MAX_RECENT_THREADS, self.new_max)
 
 
 class CLIManDownloadSubCommandTestCase(unittest.TestCase):

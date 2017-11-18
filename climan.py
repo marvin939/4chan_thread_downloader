@@ -70,6 +70,8 @@ class CLIMan:
         setting_parser.add_argument('option_name', type=str, help='Option name', choices=self.SETTINGS)
         setting_parser.add_argument('option_value', nargs='?', help='New value of option')
 
+        self.reload_config()
+
     def parse_string(self, args_string):
         """
         Wrapper for ArgumentParser's parse_args to automatically split string options.

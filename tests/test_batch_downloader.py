@@ -160,6 +160,7 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         # update the details pickle
 
         self.assertTrue(self.linkser.thread_is_dead())
+
         details = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
         self.assertIsNotNone(details)
         self.assertTrue(details['thread_alive'], True)  # Hasn't been updated yet...
@@ -183,7 +184,7 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
 class ThreadDownloaderWithIgnoreFilteringTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.downloader = BatchDownloader(LinksRetriever('test_thread.html'), TMP_DIRECTORY)
+        self.downloader = BatchDownloader(LinksRetriever(TEST_THREAD_FILENAME), TMP_DIRECTORY)
         self.downloader.ifilter = IgnoreFilter(SOME_THREAD_FILE_URLS)    # Just a normal one, without regular expressions
 
     def test_get_links(self):
