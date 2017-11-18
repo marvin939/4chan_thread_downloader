@@ -39,14 +39,15 @@ class BatchDownloaderTestCase(unittest.TestCase):
 
     def setUp(self):
         self.linkser = LinksRetriever(REAL_THREAD_URL)
-        self.destination_directory = os.path.expanduser('~/Downloads/TestDownloadThread/')
+        self.download_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.destination_directory = self.download_dir.name
         self.downloader = BatchDownloader(self.linkser, self.destination_directory)
 
         #self.thread_download_directory = os.path.join(self.destination_directory, BatchDownloader.THREAD_SAVE_NAME)
 
-    def tearDown(self):
-        # Delete all downloaded files
-        utilities.delete_directory_tree(self.destination_directory)
+    # def tearDown(self):
+    #     # Delete all downloaded files
+    #     utilities.delete_directory_tree(self.destination_directory)
 
     def test_files_to_download(self):
         pass
@@ -77,7 +78,8 @@ class BatchDownloaderDownloadingTestCase(unittest.TestCase):
     def setUp(self):
         self.linkser = LinksRetriever(THREAD_URL)
         #self.destination_directory = os.path.expanduser('~/Downloads/TestDownloadThread/')
-        self.destination_directory = TMP_DIRECTORY
+        self.thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.destination_directory = self.thread_dir.name
         self.downloader = BatchDownloader(self.linkser, self.destination_directory)
         self.download_files()
 
@@ -86,9 +88,9 @@ class BatchDownloaderDownloadingTestCase(unittest.TestCase):
             download_path = utilities.download_file(url, self.downloader.destination_folder)
             assert os.path.exists(download_path)
 
-    def tearDown(self):
-        for url in self.linkser.get_all_file_links()[:self.GET_NUM_FILES]:
-            os.remove(os.path.join(self.destination_directory, os.path.basename(url)))
+    # def tearDown(self):
+    #     for url in self.linkser.get_all_file_links()[:self.GET_NUM_FILES]:
+    #         os.remove(os.path.join(self.destination_directory, os.path.basename(url)))
 
     def test_files_downloaded(self):
         downloaded = self.downloader.get_files_downloaded()

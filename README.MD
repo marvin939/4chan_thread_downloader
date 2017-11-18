@@ -8,11 +8,11 @@ This is my 4chan images/videos downloader in Python.
 ## Required python packages:
 * BeautifulSoup4 (Windows: `py -m pip install BeautifulSoup4`)
 * lxml parser (Windows: `py -m pip install lxml`)
-* requests (http://docs.python-requests.org/en/latest/#)
+* [requests](http://docs.python-requests.org/en/latest/#)
 
 ## System Requirements:
-* Windows (tested on 10)
-* Python 3.6.1
+* Linux (old version works on Windows 10, not sure with new one)
+* Python 3.5.2
 
 ## Usage:
 Just run `4chan_downloader.py` in the command line using `py 4chan_downloader.py` and follow the steps. Command line arguments are not available yet.
