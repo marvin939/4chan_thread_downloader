@@ -193,7 +193,7 @@ class LinksRetriever():
         self.__thread_id = None
         self.__thread_board_initials = None
 
-        self.files_links = []
+        self.__files_links = []
 
     def get_title(self):
         if self.__thread_title is not None:
@@ -288,8 +288,8 @@ class LinksRetriever():
         return None
 
     def get_all_file_links(self):
-        if len(self.files_links) > 0:
-            return self.files_links
+        if len(self.__files_links) > 0:
+            return self.__files_links
 
         def post_has_media_file(tag):
             if tag.name == "a" and tag.has_attr("class"):
@@ -298,11 +298,11 @@ class LinksRetriever():
                         return True
             return False
 
-        self.files_links = []
+        self.__files_links = []
         for media in self.soup.find_all(post_has_media_file):
-            self.files_links.append(self.get_media_url(media["href"]))
+            self.__files_links.append(self.get_media_url(media["href"]))
 
-        return self.files_links
+        return self.__files_links
 
     def thread_is_dead(self):
         """

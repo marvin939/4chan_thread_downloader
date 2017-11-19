@@ -38,13 +38,14 @@ class CLIMan:
         self.recent_threads = []
 
         mode_sub_parser = self.parser.add_subparsers(title='mode',
-                                                     dest='mode',   # for determining mode through namespace
+                                                     dest='mode',  # for determining mode through namespace
                                                      description='Set the action this program will carry out',
-                                                     help='Mode of operation')
+                                                     help='''Mode of operation. Follow a sub-command (eg. download) 
+                                                     with -h to view more info about it.''')
 
         # Download sub-command
         download_parser = mode_sub_parser.add_parser(self.COMMAND_DOWNLOAD,
-                                                     help='download sub-command help')
+                                                     help='Download a URL and optionally to a directory.')
         download_parser.add_argument('url',
                                      help="Thread's URL to download")
         download_parser.add_argument('--dir', '-d',
@@ -98,13 +99,17 @@ class CLIMan:
         return
 
     def cli_synchronise_recent_threads(self, args):
-        pop_list = []
-
+        pop_list = set()
         for thread_dir in self.recent_threads:
+            if not os.path.exists(thread_dir):
+                pop_list.add(thread_dir)
+                continue
+
             downloader = BatchDownloader.from_directory(thread_dir)
             self.downloader_start(downloader)
             if downloader.links_retriever.thread_is_dead():
-                pop_list += [thread_dir]
+                pop_list.add(thread_dir)
+                # pop_list += [thread_dir]
 
         self.recent_threads = list((thread_dir for thread_dir in self.recent_threads if thread_dir not in pop_list))
         self.save_config()
@@ -145,6 +150,11 @@ class CLIMan:
         return downloader.destination_folder
 
     def recent_threads_add(self, downloader):
+        """
+        Determines if the current BatchDownloader's destination folder should be added to recent threads.
+        :param downloader: BatchDownloader object
+        :return: None
+        """
         if downloader.links_retriever.thread_is_dead():
             return
         if downloader.destination_folder in self.recent_threads:

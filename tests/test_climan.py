@@ -1,8 +1,9 @@
+import os
 from retriever import BatchDownloader, LinksRetriever
 from tempfile import TemporaryDirectory, TemporaryFile
 # from cli import Program
 from tests.constants import *
-from climan import *
+from climan import CLIMan
 from tests.useful import create_test_environment
 import unittest
 
@@ -12,13 +13,6 @@ class CLIManArgumentParsingTestCase(unittest.TestCase):
         self.climan = CLIMan()
         # self.climan.print_help()
         # self.climan.parser.print_help()
-
-    # def test_parse_mode(self):
-    #     # cli_input = 'download {url}'.format(url=STICKY_THREAD_URL)
-    #     cli_input = 'download'
-    #     args = self.climan.parse_string(cli_input)
-    #     self.assertEqual(args.mode, cli_input)
-        # self.assertEqual(args.url, STICKY_THREAD_URL)
 
     def test_mode_download(self):
         cli_input = 'download {url}'.format(url=STICKY_THREAD_URL)
@@ -319,6 +313,16 @@ class CLIManSyncRecentTestCase(unittest.TestCase):
         config_dict = utilities.json_from_path(self.climan.config_path())
         self.assertNotIn(self.dead_thread_dir.name, config_dict[CLIMan.OPTION_RECENT_THREADS])
         self.assertIn(self.alive_thread_dir.name, config_dict[CLIMan.OPTION_RECENT_THREADS])
+
+    def test_recent_list_with_missing_threads(self):
+        """For when the recent_list contains a thread folder that has already been deleted from the hard drive."""
+        dead = self.dead_thread_dir.name
+        del self.dead_thread_dir
+        self.assertFalse(os.path.exists(dead))
+        args = self.climan.parse_string(CLIMan.COMMAND_SYNC_RECENT)
+        args.func(args)
+        self.assertNotIn(dead, self.climan.recent_threads)
+        '''All thread folders that no longer exist should be removed from the list'''
 
 
 class CLIManMaxRecentThreadsExceeded(unittest.TestCase):

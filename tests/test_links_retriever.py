@@ -10,7 +10,7 @@ class LinksRetrieverInstantiateTestCase(unittest.TestCase):
     def test_create_instance_from_hdd(self):
         #expected_title = '/wg/ - Minimalistic papes - Wallpapers/General - 4chan'
 
-        linkser = LinksRetriever('test_thread.html')  # It's in hdd
+        linkser = LinksRetriever(TEST_THREAD_FILENAME)  # It's in hdd
         self.assertIsNotNone(linkser.soup)
         self.assertEqual(linkser.soup.title.text, EXPECTED_THREAD_HTML_TITLE)
 

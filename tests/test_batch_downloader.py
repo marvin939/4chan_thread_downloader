@@ -17,12 +17,12 @@ class BatchDownloaderInstantiateTestCase(unittest.TestCase):
     #         downloader = BatchDownloader(123456)
 
     def test_instantiate_with_link_retriever(self):
-        getter = LinksRetriever('test_thread.html')
+        getter = LinksRetriever(TEST_THREAD_FILENAME)
         downloader = BatchDownloader(getter)
         self.assertEqual(downloader.links_retriever, getter)
 
     def test_instantiate_with_destination_folder(self):
-        getter = LinksRetriever('test_thread.html')
+        getter = LinksRetriever(TEST_THREAD_FILENAME)
         destination_dir = os.path.expanduser('~/Downloads/')
         downloader = BatchDownloader(getter, destination_dir)
         self.assertEqual(downloader.destination_folder, destination_dir)
@@ -38,7 +38,7 @@ class BatchDownloaderTestCase(unittest.TestCase):
     # pass
 
     def setUp(self):
-        self.linkser = LinksRetriever(REAL_THREAD_URL)
+        self.linkser = LinksRetriever(THREAD_URL)
         self.download_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
         self.destination_directory = self.download_dir.name
         self.downloader = BatchDownloader(self.linkser, self.destination_directory)
@@ -87,10 +87,6 @@ class BatchDownloaderDownloadingTestCase(unittest.TestCase):
         for url in self.linkser.get_all_file_links()[:self.GET_NUM_FILES]:
             download_path = utilities.download_file(url, self.downloader.destination_folder)
             assert os.path.exists(download_path)
-
-    # def tearDown(self):
-    #     for url in self.linkser.get_all_file_links()[:self.GET_NUM_FILES]:
-    #         os.remove(os.path.join(self.destination_directory, os.path.basename(url)))
 
     def test_files_downloaded(self):
         downloaded = self.downloader.get_files_downloaded()
