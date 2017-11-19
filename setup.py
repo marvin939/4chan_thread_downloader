@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='thread_files',
     packages=['thread_files'],
-    version='0.1.0b',
+    version='0.1.0c',
     description='A 4chan thread downloader',
     author='Marvin Muyargas',
     author_email='',
