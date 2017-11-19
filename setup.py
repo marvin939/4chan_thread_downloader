@@ -1,14 +1,10 @@
 from distutils.core import setup
 
-with open('README.MD') as f:
-    long_description = f.read()
-
 setup(
     name='thread_files',
     packages=['thread_files'],
-    version='0.1.0',
+    version='0.1.0b',
     description='A 4chan thread downloader',
-    long_description=long_description,
     author='Marvin Muyargas',
     author_email='',
     license='MIT',
