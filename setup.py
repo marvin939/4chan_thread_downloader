@@ -27,4 +27,9 @@ setup(
         'lxml>=4.1.1',
         'requests>=2.18.4',
     ],
+    entry_points={
+        'console_scripts': [
+            '4tdl=thread_files.4tdl:main'
+        ]
+    }
 )
