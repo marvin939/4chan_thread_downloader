@@ -6,7 +6,7 @@ with open('README.MD') as f:
 setup(
     name='thread_files',
     packages=['thread_files'],
-    version='1.0.0',
+    version='0.1.0',
     description='A 4chan thread downloader',
     long_description=long_description,
     author='Marvin Muyargas',
