@@ -12,7 +12,7 @@ This is my 4chan images/videos downloader in Python.
 * Python 3.5.2
 
 ## Installation
-* Clone this repo
+* Clone/download this repo and extract anywhere
 * Go into the folder (`thread_files`)
 * Run `pip install .` (note the period!)
 

@@ -6,3 +6,5 @@ __pycache__
 *.jpeg
 tests/test_thread_files/
 tests/tmp/
+dist/
+*.tar.gz

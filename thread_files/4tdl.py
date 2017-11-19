@@ -10,7 +10,7 @@ def main():
         if res is not None:
             print(res)
     else:
-        cli.print_help()
+        cli.parser.print_help()
 
 if __name__ == '__main__':
     main()
