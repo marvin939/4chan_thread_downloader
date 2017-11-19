@@ -1,4 +1,4 @@
-from threaddl.retriever import BatchDownloader, LinksRetriever
+from thread_files.retriever import BatchDownloader, LinksRetriever
 import os
 from tests.constants import *
 

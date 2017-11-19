@@ -4,10 +4,10 @@ import shutil
 import unittest
 from tempfile import TemporaryDirectory
 
-from threaddl.retriever import *
+from thread_files.retriever import *
 
 from tests.constants import *
-from threaddl.utilities import IgnoreFilter
+from thread_files.utilities import IgnoreFilter
 
 
 class UrlIsAccessibleTestCase(unittest.TestCase):

@@ -1,6 +1,6 @@
 import unittest
 
-from threaddl.retriever import *
+from thread_files.retriever import *
 
 from tests.constants import *
 

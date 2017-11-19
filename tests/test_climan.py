@@ -2,8 +2,8 @@ import os
 import unittest
 from tempfile import TemporaryDirectory
 
-from threaddl.climan import CLIMan
-from threaddl.retriever import BatchDownloader, LinksRetriever
+from thread_files.climan import CLIMan
+from thread_files.retriever import BatchDownloader, LinksRetriever
 
 # from cli import Program
 from tests.constants import *

@@ -2,10 +2,10 @@ import os
 import unittest
 from tempfile import TemporaryDirectory
 
-from threaddl.retriever import LinksRetriever, BatchDownloader
+from thread_files.retriever import LinksRetriever, BatchDownloader
 
 from tests.useful import *
-from threaddl.utilities import IgnoreFilter
+from thread_files.utilities import IgnoreFilter
 
 
 # todo: Speed up some of the tests...

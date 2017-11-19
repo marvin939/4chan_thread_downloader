@@ -1,6 +1,6 @@
 import unittest
 
-from threaddl.retriever import LinksRetriever
+from thread_files.retriever import LinksRetriever
 
 
 class LinksRetrieverTitleRegexTestCase(unittest.TestCase):
