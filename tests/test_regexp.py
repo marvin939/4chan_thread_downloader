@@ -1,6 +1,6 @@
-from retriever import LinksRetriever
 import unittest
-import re
+
+from threaddl.retriever import LinksRetriever
 
 
 class LinksRetrieverTitleRegexTestCase(unittest.TestCase):
@@ -15,11 +15,11 @@ class LinksRetrieverTitleRegexTestCase(unittest.TestCase):
 
     def test_group_match_title_board(self):
         matches = LinksRetriever.RE_TITLE.search(self.EXAMPLE_TITLE)
-        self.assertEqual(matches('board'), self.EXPECTED_THREAD_BOARD_NAME)
+        self.assertEqual(matches.group('board'), self.EXPECTED_THREAD_BOARD_NAME)
 
     def test_group_match_thread_title(self):
         matches = LinksRetriever.RE_TITLE.search(self.EXAMPLE_TITLE)
-        self.assertEqual(matches('title'), self.EXPECTED_THREAD_TITLE)
+        self.assertEqual(matches.group('title'), self.EXPECTED_THREAD_TITLE)
 
 
 class FourChanUrlRegexTestCase(unittest.TestCase):

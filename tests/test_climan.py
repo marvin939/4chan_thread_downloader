@@ -1,11 +1,13 @@
 import os
-from retriever import BatchDownloader, LinksRetriever
-from tempfile import TemporaryDirectory, TemporaryFile
+import unittest
+from tempfile import TemporaryDirectory
+
+from threaddl.climan import CLIMan
+from threaddl.retriever import BatchDownloader, LinksRetriever
+
 # from cli import Program
 from tests.constants import *
-from climan import CLIMan
 from tests.useful import create_test_environment
-import unittest
 
 
 class CLIManArgumentParsingTestCase(unittest.TestCase):

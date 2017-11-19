@@ -1,7 +1,7 @@
 import unittest
 
-import utilities
-from retriever import *
+from threaddl.retriever import *
+
 from tests.constants import *
 
 

@@ -1,11 +1,13 @@
 import glob
-import pickle
-from bs4 import BeautifulSoup
-import requests
-import re
 import os
-import utilities
+import pickle
+import re
 from concurrent import futures
+
+import requests
+from bs4 import BeautifulSoup
+
+from threaddl import utilities
 
 
 class BatchDownloader:
@@ -249,8 +251,7 @@ class LinksRetriever():
 
         def thread_id_matcher(tag):
             """
-            Look for this element:
-            <div class="thread" id="t7027515"> ... </div>
+            Look for this element: <div class="thread" id="t7027515"> ... </div>
             """
             if tag.name != 'div':   # Don't use 'is' and 'is not' operator with tag objects!
                 return False

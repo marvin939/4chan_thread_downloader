@@ -1,11 +1,9 @@
-from tempfile import TemporaryDirectory
-import unittest
-from retriever import *
 import unittest
 from tempfile import TemporaryDirectory
-from tests.constants import *
+
+from threaddl.retriever import *
+
 from tests.useful import *
-from retriever import *
 
 print('THIS WILL TAKE A WHILE SINCE THIS TEST WILL HAVE TO DOWNLOAD EVERYTHING FROM THE THREAD!')
 

@@ -1,4 +1,4 @@
-import utilities
+from threaddl import utilities
 
 """VOLATILE TEST CONSTANTS"""
 # Modify these when running unit tests, if the thread is dead.

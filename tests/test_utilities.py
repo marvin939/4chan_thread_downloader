@@ -2,12 +2,12 @@ import json
 import os
 import shutil
 import unittest
-from tempfile import TemporaryDirectory, TemporaryFile
+from tempfile import TemporaryDirectory
 
-import utilities
-from retriever import *
-from utilities import IgnoreFilter
+from threaddl.retriever import *
+
 from tests.constants import *
+from threaddl.utilities import IgnoreFilter
 
 
 class UrlIsAccessibleTestCase(unittest.TestCase):

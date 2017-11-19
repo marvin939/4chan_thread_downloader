@@ -1,14 +1,16 @@
-from retriever import BatchDownloader, LinksRetriever
-import utilities
+import argparse
 import json
 import os
-import argparse
+
+from threaddl.retriever import BatchDownloader, LinksRetriever
+
+from threaddl import utilities
 
 
 # class CLIMan(argparse.ArgumentParser):
 class CLIMan:
     DEBUG = False   # For preventing unnecessary downloads during tests
-    PROGRAM_NAME = '4tdl.py'
+    PROGRAM_NAME = 'threaddl.py'
 
     COMMAND_SYNC_DIR = 'sync-dir'
     COMMAND_SYNC_RECENT = 'sync-recent'

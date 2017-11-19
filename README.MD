@@ -5,10 +5,10 @@
 # 4CHAN THREAD FILES DOWNLOADER
 This is my 4chan images/videos downloader in Python.
 
-## Required python packages:
-* BeautifulSoup4 (Windows: `py -m pip install BeautifulSoup4`)
-* lxml parser (Windows: `py -m pip install lxml`)
-* [requests](http://docs.python-requests.org/en/latest/#)
+## Features
+* Download threads
+* Synchronise downloaded threads
+* Synchronise recently downloaded threads
 
 ## System Requirements:
 * Linux (old version works on Windows 10, not sure with new one)

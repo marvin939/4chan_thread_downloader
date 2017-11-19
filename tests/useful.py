@@ -1,5 +1,6 @@
+from threaddl.retriever import BatchDownloader, LinksRetriever
+import os
 from tests.constants import *
-from retriever import *
 
 
 def create_test_environment(dirname, num_files_to_download=0, url=TEST_THREAD_FILENAME):

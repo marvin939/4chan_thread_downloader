@@ -1,12 +1,12 @@
-from tempfile import TemporaryDirectory
 import os
 import unittest
+from tempfile import TemporaryDirectory
 
-import utilities
-from retriever import LinksRetriever, BatchDownloader
-from utilities import IgnoreFilter
-from tests.constants import *
+from threaddl.retriever import LinksRetriever, BatchDownloader
+
 from tests.useful import *
+from threaddl.utilities import IgnoreFilter
+
 
 # todo: Speed up some of the tests...
 
