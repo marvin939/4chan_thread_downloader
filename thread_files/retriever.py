@@ -66,7 +66,7 @@ class BatchDownloader:
         details_dict = details
 
         utilities.create_directory_tree(self.destination_folder)
-        pickle_destination = os.path.join(self.destination_folder, self.THREAD_DETAILS_FILENAME)
+        pickle_destination = self.get_details_path()#os.path.join(self.destination_folder, self.THREAD_DETAILS_FILENAME)
         with open(pickle_destination, 'wb') as fh:
             pickle.dump(details_dict, fh)
 
@@ -77,8 +77,8 @@ class BatchDownloader:
     # Should be static:
     @staticmethod
     def load_details_into_dict(details_path):
-        if not os.path.exists(details_path):
-            return None
+        # if not os.path.exists(details_path):
+        #     return None
         with open(details_path, 'rb') as fh:
             return pickle.load(fh)
 

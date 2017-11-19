@@ -177,7 +177,7 @@ class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
 
     def test_filter_with_ignore_list(self):
         # ignore_list = ['http://i.4cdn.org/wg/1507921740712.jpg', 'https://i.4cdn.org/wg/1506628360792.png']
-        downloader = BatchDownloader(LinksRetriever('test_thread.html'))
+        downloader = BatchDownloader(LinksRetriever(TEST_THREAD_FILENAME))
         not_downloaded = list(downloader.get_links_not_downloaded())
         filtered = list(IgnoreFilter.filter_with_ignore_list(not_downloaded, self.ignore_list_contents))
         self.assertNotIn(self.ignore_list_contents, filtered)
@@ -190,7 +190,7 @@ class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
     def test_normal_list_filter_function(self):
         """Test that the filter method is the normal one"""
         fil = IgnoreFilter(self.ignore_list_contents, is_regex=False)
-        downloader = BatchDownloader(LinksRetriever('test_thread.html'))
+        downloader = BatchDownloader(LinksRetriever(TEST_THREAD_FILENAME))
         not_downloaded = list(downloader.get_links_not_downloaded())
 
         filtered = tuple(fil.filter(not_downloaded))
@@ -202,7 +202,7 @@ class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
 
     def test_regex_list_filter_function_no_regex(self):
         fil = IgnoreFilter(self.ignore_list_contents, is_regex=True)
-        downloader = BatchDownloader(LinksRetriever('test_thread.html'))
+        downloader = BatchDownloader(LinksRetriever(TEST_THREAD_FILENAME))
         not_downloaded = list(downloader.get_links_not_downloaded())
 
         filtered = tuple(fil.filter(not_downloaded))

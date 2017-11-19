@@ -123,7 +123,7 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         self.assertTrue(isinstance(details['thread_alive'], bool))
 
     def test_load_details(self):
-        down = BatchDownloader(self.linkser, './tmp/')
+        down = BatchDownloader(self.linkser, TemporaryDirectory(dir=TMP_DIRECTORY).name)
         details = down.construct_details_dict()
         down.pickle_details()
         loaded = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
@@ -131,7 +131,7 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         self.assertEqual(loaded, details)
 
     def test_compare_details(self):
-        down = BatchDownloader(self.linkser, './tmp/')
+        down = BatchDownloader(self.linkser, TemporaryDirectory(dir=TMP_DIRECTORY).name)
         details = down.construct_details_dict()
         down.pickle_details()
         loaded = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
@@ -141,11 +141,12 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         self.assertEqual(loaded['thread_alive'], details['thread_alive'])
 
     def test_pickle_details_custom_details(self):
+        download_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
         custom_details = {'last-modified':'123456', 'thread_alive': False, 'url':THREAD_URL}
-        down = BatchDownloader(self.linkser, './tmp/')
+        down = BatchDownloader(self.linkser, download_dir.name)
         #details = down.construct_details_dict()
         down.pickle_details(custom_details)
-        loaded = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
+        loaded = BatchDownloader.load_details_into_dict(down.get_details_path())
 
         self.assertEqual(loaded['last-modified'], custom_details['last-modified'])
         self.assertEqual(loaded['url'], custom_details['url'])

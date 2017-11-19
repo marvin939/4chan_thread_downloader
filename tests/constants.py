@@ -15,6 +15,7 @@ SOME_THREAD_FILE_URLS = ['http://i.4cdn.org/wg/1507921740712.jpg', 'https://i.4c
 THREAD_GONE_REASON = 'The thread is either dead, or the site is down...'
 TMP_DIRECTORY = './tmp/'
 FAKE_THREAD_URL = THREAD_URL + '404'
+# TEST_THREAD_FILENAME = 'tests/test_thread.html'
 TEST_THREAD_FILENAME = 'test_thread.html'
 
 if not utilities.url_is_accessible(THREAD_URL):
