@@ -8,7 +8,7 @@ from cachecontrol.caches.file_cache import FileCache
 
 
 __STORED_SESSION = None
-CACHE_DIR = '.web_cache'
+CACHE_DIR = os.path.expanduser('~/.thread_files/cache')
 
 
 def get_stored_session():
