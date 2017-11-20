@@ -23,6 +23,7 @@ TEST_THREAD_FILENAME = 'test_thread.html'
 
 """OVERRIDES WHEN TESTING"""
 utilities.CACHE_DIR = '.web_cache'
+utilities.DBG_CACHED_DOWNLOAD = True
 
 
 if not utilities.url_is_accessible(THREAD_URL):

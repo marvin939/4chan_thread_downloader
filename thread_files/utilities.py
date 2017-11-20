@@ -6,7 +6,7 @@ import shutil
 from cachecontrol import CacheControl
 from cachecontrol.caches.file_cache import FileCache
 
-
+DBG_CACHED_DOWNLOAD = False
 __STORED_SESSION = None
 CACHE_DIR = os.path.expanduser('~/.thread_files/cache')
 
@@ -56,7 +56,12 @@ def download_file(url, directory='.', filename=None, overwrite=False, silent=Fal
     if not os.path.exists(directory):
         os.makedirs(directory, exist_ok=True)
 
-    r = get_stored_session().get(url, stream=True)
+    if DBG_CACHED_DOWNLOAD:
+        r = get_stored_session().get(url, stream=True)
+    else:
+        # On release: Do not cache file downloads since they waste HDD space
+        r = requests.get(url, stream=True)
+
     with open(save_path, 'wb') as f:
         shutil.copyfileobj(r.raw, f)
 

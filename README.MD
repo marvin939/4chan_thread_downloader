@@ -15,7 +15,7 @@ This is my 4chan images/videos downloader made using Python.
 ## Installation
 * Clone/download this repo and extract anywhere
 * Go into the folder (`thread_files`)
-* Run `pip install .` (note the period!)
+* Run `pip install . --upgrade --user` (note the period!)
 
 ## Usage:
 Once you have installed it, the command is `4tdl`. To view help, run `4tdl -h`
