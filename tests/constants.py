@@ -20,8 +20,10 @@ FAKE_THREAD_URL = THREAD_URL + '404'
 # TEST_THREAD_FILENAME = 'tests/test_thread.html'
 TEST_THREAD_FILENAME = 'test_thread.html'
 
+
 """OVERRIDES WHEN TESTING"""
 utilities.CACHE_DIR = '.web_cache'
+
 
 if not utilities.url_is_accessible(THREAD_URL):
     raise ValueError(

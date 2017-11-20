@@ -175,3 +175,6 @@ def json_from_path(path):
     with open(path, encoding='utf-8') as f:
         json_obj = json.load(f)
     return json_obj
+
+
+create_directory_tree(CACHE_DIR)
