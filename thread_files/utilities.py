@@ -13,6 +13,8 @@ CACHE_DIR = os.path.expanduser('~/.thread_files/cache')
 
 def get_stored_session():
     global __STORED_SESSION
+    create_directory_tree(CACHE_DIR)
+
     if __STORED_SESSION is None:
         __STORED_SESSION = CacheControl(requests.Session(), cache=FileCache(CACHE_DIR))
     return __STORED_SESSION
@@ -175,6 +177,3 @@ def json_from_path(path):
     with open(path, encoding='utf-8') as f:
         json_obj = json.load(f)
     return json_obj
-
-
-create_directory_tree(CACHE_DIR)
