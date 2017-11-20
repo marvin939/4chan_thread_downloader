@@ -1,11 +1,12 @@
-# 4CHAN THREAD FILES DOWNLOADER
-This is my 4chan images/videos downloader in Python.
+# THREAD FILES
+This is my 4chan images/videos downloader made using Python.
 
 ## Features
 * Download threads
 * Synchronise downloaded threads
 * Synchronise recently downloaded threads
 * Multi-threaded downloading
+* Cached HTTP responses
 
 ## System Requirements:
 * Linux (old version works on Windows 10, not sure with new one)
@@ -46,3 +47,8 @@ Example:
 ### Viewing setting values
 `4tdl setting <option>`
 Prints the value of the option.
+
+## Future plans/Next steps
+* [Response caching](https://cachecontrol.readthedocs.io/en/latest/storage.html)
+* I plan on implementing a JSON version of the LinksRetriever class with [4chan's JSON API](https://github.com/4chan/4chan-API).
+* Use factory class/method for choosing between HTML/JSON LinksRetriever (I'm still new to Python)

@@ -3,6 +3,19 @@ import re
 import requests
 import os
 import shutil
+from cachecontrol import CacheControl
+from cachecontrol.caches.file_cache import FileCache
+
+
+__STORED_SESSION = None
+CACHE_DIR = '.web_cache'
+
+
+def get_stored_session():
+    global __STORED_SESSION
+    if __STORED_SESSION is None:
+        __STORED_SESSION = CacheControl(requests.Session(), cache=FileCache(CACHE_DIR))
+    return __STORED_SESSION
 
 
 def retrieve_url_as_string(url):
@@ -41,7 +54,7 @@ def download_file(url, directory='.', filename=None, overwrite=False, silent=Fal
     if not os.path.exists(directory):
         os.makedirs(directory, exist_ok=True)
 
-    r = requests.get(url, stream=True)
+    r = get_stored_session().get(url, stream=True)
     with open(save_path, 'wb') as f:
         shutil.copyfileobj(r.raw, f)
 

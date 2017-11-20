@@ -8,6 +8,8 @@ import requests
 from bs4 import BeautifulSoup
 
 from thread_files import utilities
+from cachecontrol import CacheControl
+from cachecontrol.caches.file_cache import FileCache
 
 
 class BatchDownloader:
@@ -168,6 +170,11 @@ class LinksRetriever():
     PATTERN_MEDIA_URL = r'i\.4cdn\.org\/\w+\/\w+\.\w+'
     RE_MEDIA_URL = re.compile(PATTERN_MEDIA_URL)
 
+    # Caching responses
+    # STORED_SESSION = None
+    # CACHE_DIR = '.web_cache'
+
+
     def __init__(self, url):
         self.thread_url = url
         self.from_hdd = False
@@ -182,7 +189,8 @@ class LinksRetriever():
                 self.thread_url = os.path.expanduser(url)
                 self.from_hdd = True
             else:
-                self.response = requests.get(url_found.group())
+                # From internet
+                self.response = utilities.get_stored_session().get(url_found.group())
                 self.soup = BeautifulSoup(self.response.text, 'lxml')
         elif isinstance(url, requests.models.Response):
             # Response object
