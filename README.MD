@@ -49,6 +49,6 @@ Example:
 Prints the value of the option.
 
 ## Future plans/Next steps
-* [Response caching](https://cachecontrol.readthedocs.io/en/latest/storage.html)
-* I plan on implementing a JSON version of the LinksRetriever class with [4chan's JSON API](https://github.com/4chan/4chan-API).
-* Use factory class/method for choosing between HTML/JSON LinksRetriever (I'm still new to Python)
+- [x] [Response caching](https://cachecontrol.readthedocs.io/en/latest/storage.html)
+- [x] I plan on implementing a JSON version of the LinksRetriever class with [4chan's JSON API](https://github.com/4chan/4chan-API).
+- [x] Use factory class/method for choosing between HTML/JSON LinksRetriever (I'm still new to Python)

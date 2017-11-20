@@ -22,6 +22,7 @@ setup(
         'beautifulsoup4>=4.6.0',
         'lxml>=4.1.1',
         'requests>=2.18.4',
+        'cachecontrol[filecache]',
     ],
     entry_points={
         'console_scripts': [
