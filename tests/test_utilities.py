@@ -159,6 +159,12 @@ class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
         self.fil = IgnoreFilter(self.ignore_list_contents)
         self.png_regex = r'\w+\.png'
 
+    def test_filter_with_ignore_list_containing_regexp_length(self):
+        ignore_list = self.ignore_list_contents
+        regexp_ignore_list = self.fil.convert_filter_list_to_regex_list(ignore_list)
+        self.assertEqual(len(regexp_ignore_list),
+                         len(self.ignore_list_contents))  # check length same as list + png regex
+
     def test_filter_with_ignore_list_containing_regexp(self):
         ignore_list = self.ignore_list_contents + [self.png_regex]
         # ignore_list = self.fil.load_filter(self.ignore_list_path)
@@ -215,6 +221,18 @@ class IgnoreFilterFilteringListsTestCase(unittest.TestCase):
         test_list = ['123456.png', '123456.jpg', '6789.png']    # only 1 jpg; 2 pngs
         filtered = tuple(fil.filter(test_list))
         self.assertEqual(len(filtered), 1)
+
+    def test_regex_list_filter_function_with_no_regex(self):
+        # fil = IgnoreFilter(self.ignore_list_contents + [self.png_regex], is_regex=True)
+        ignore = ['123456.png', '123456.jpg']
+        fil = IgnoreFilter(ignore, is_regex=True)
+        test_list = ['123456.png', '123456.jpg', '6789.png', 'abceasdf.png', 'fff.webm']
+        filtered = tuple(fil.filter(test_list))
+        # self.assertEqual(len(filtered), 1)
+        for file in ignore:
+            with self.subTest(f=file):
+                self.assertNotIn(file, filtered)
+        self.assertEqual(len(filtered), len(test_list) - len(ignore))
 
 
 class LoadJSONTestCase(unittest.TestCase):

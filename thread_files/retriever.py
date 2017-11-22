@@ -124,9 +124,12 @@ class BatchDownloader:
         """Returns generator of links that will be downloaded, based on files that have already been downloaded
         and optionally using an IgnoreFilter instance with (if one exists)."""
         not_downloaded = self.get_links_not_downloaded()
-        if self.ifilter is None or filtered is False:
+        if self.ifilter is None or filtered == False:
             return not_downloaded
-        return self.ifilter.filter(not_downloaded)
+        filtered = tuple(self.ifilter.filter(not_downloaded))
+        print('filter:', filtered)
+        return filtered
+        # return self.ifilter.filter(not_downloaded)
 
     @staticmethod
     def from_directory(directory):
@@ -152,6 +155,7 @@ class BatchDownloader:
         ignore_list_path = os.path.join(directory, BatchDownloader.IGNORE_LIST_FILENAME)
         if os.path.exists(ignore_list_path):
             instance.ifilter = utilities.IgnoreFilter.load_filter(ignore_list_path)
+            print('ifilter:', instance.ifilter.filter_list)
 
         return instance
 

@@ -284,3 +284,19 @@ class DoNotDownloadIf404ResponseTestCase(unittest.TestCase):
     # LinksRetriever now raises error when it reaches a 404'd thread
     # def test_should_download_on_expired404d_thread(self):
     #     self.assertFalse(self.dead_downloader.should_download())
+
+
+class IgnoreFilteredLinksTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.downloader = BatchDownloader(LinksRetriever(STICKY_THREAD_URL), self.thread_dir.name)
+        self.ignore = [os.path.basename(url) for url in ('http://i.4cdn.org/wg/1489266876258.png', 'http://i.4cdn.org/wg/1489266748255.jpg')]
+        self.ifilter = IgnoreFilter(self.ignore, is_regex=True)
+        self.downloader.ifilter = self.ifilter
+
+    def test_num_links(self):
+        links = tuple(self.downloader.links())
+        self.assertGreater(len(links), 0)
+        self.assertEqual(len(links), len(self.downloader.get_links_not_downloaded()) - len(self.ignore))
+        print('Links tuple:', links)

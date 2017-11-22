@@ -145,7 +145,7 @@ class IgnoreFilter:
         """Converts an ignore list into a list of regexp engines"""
         new_list = []
         for item in ignore_list:
-            new_list = [re.compile(item)]
+            new_list += [re.compile(item)]
         return new_list
 
     # @staticmethod
@@ -177,6 +177,8 @@ class IgnoreFilter:
                     break
             if add_item:
                 yield item
+                # filtered += [item]
+        # return filtered
 
 
 def json_from_path(path):
