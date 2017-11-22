@@ -17,13 +17,14 @@ SOME_THREAD_FILE_URLS = ['http://i.4cdn.org/wg/1507921740712.jpg', 'https://i.4c
 THREAD_GONE_REASON = 'The thread is either dead, or the site is down...'
 TMP_DIRECTORY = './tmp/'
 FAKE_THREAD_URL = THREAD_URL + '404'
+EXPIRED_THREAD_URL = 'http://boards.4chan.org/g/thread/63450990'    # an actual expired thread
 # TEST_THREAD_FILENAME = 'tests/test_thread.html'
 TEST_THREAD_FILENAME = 'test_thread.html'
 
 
 """OVERRIDES WHEN TESTING"""
 utilities.CACHE_DIR = '.web_cache'
-utilities.DBG_CACHED_DOWNLOAD = True
+utilities.DBG_CACHED_DOWNLOAD = True    # Cache file downloads to speed up tests
 
 
 if not utilities.url_is_accessible(THREAD_URL):

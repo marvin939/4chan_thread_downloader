@@ -235,3 +235,45 @@ class ThreadDownloaderInstantiateFromExistingFolder(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             downloader = BatchDownloader.from_directory(tempdir.name)
 
+
+class DoNotDownloadIf404ResponseTestCase(unittest.TestCase):
+
+    def setUp(self):
+        BatchDownloader.DBG_DOWNLOAD = True
+        self.expired_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.alive_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        # create_test_environment(self.expired_thread_dir.name, 0, EXPIRED_THREAD_URL)
+        self.dead_downloader = BatchDownloader(LinksRetriever(EXPIRED_THREAD_URL), self.expired_thread_dir.name)
+        self.alive_downloader = BatchDownloader(LinksRetriever(STICKY_THREAD_URL), self.alive_thread_dir.name)
+
+    def test_reproduce_error(self):
+        """Just reproducing error:
+
+        Error
+        Traceback (most recent call last):
+          File "/usr/lib/python3.5/unittest/case.py", line 58, in testPartExecutor
+            yield
+          File "/usr/lib/python3.5/unittest/case.py", line 600, in run
+            testMethod()
+          File "/home/marvin/PycharmProjects/thread_files/tests/test_batch_downloader.py", line 252, in test_crashes_program
+            self.downloader.construct_details_dict()
+          File "/home/marvin/PycharmProjects/thread_files/thread_files/retriever.py", line 96, in construct_details_dict
+            details_dict['last-modified'] = self.links_retriever.response.headers['last-modified']
+          File "/home/marvin/virtualenvs/lib/python3.5/site-packages/requests/structures.py", line 54, in __getitem__
+            return self._store[key.lower()][1]
+        KeyError: 'last-modified'
+        """
+        # with self.assertRaises(KeyError):
+        #     self.dead_downloader.construct_details_dict()
+        # Solved i think
+        pass
+
+    def test_dead_downloader_not_from_hard_drive(self):
+        """Assert that the LinksRetriever object's from_hdd flag is false"""
+        self.assertFalse(self.dead_downloader.links_retriever.from_hdd)
+
+    def test_should_download_on_alive_thread(self):
+        self.assertTrue(self.alive_downloader.should_download())
+
+    def test_should_download_on_expired404d_thread(self):
+        self.assertFalse(self.dead_downloader.should_download())

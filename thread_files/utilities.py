@@ -6,7 +6,9 @@ import shutil
 from cachecontrol import CacheControl
 from cachecontrol.caches.file_cache import FileCache
 
-DBG_CACHED_DOWNLOAD = False
+
+DBG_CACHED_DOWNLOAD = False  # for tests only. True = cache downloaded files. Used for test case performance improvement
+
 __STORED_SESSION = None
 CACHE_DIR = os.path.expanduser('~/.thread_files/cache')
 

@@ -31,7 +31,7 @@ class CLIManArgumentParsingTestCase(unittest.TestCase):
         cli_input = 'download {url} -d {dir}'.format(url=STICKY_THREAD_URL, dir=TMP_DIRECTORY)
         args = self.climan.parse_string(cli_input)
         self.assertEqual(args.url, STICKY_THREAD_URL)
-        self.assertEqual(args.dir, TMP_DIRECTORY)
+        self.assertEqual(args.dir, os.path.abspath(TMP_DIRECTORY))
 
     def test_mode_download_dir_none(self):
         """Check if parser's return object has dir property even if it was not set in the first place"""
@@ -48,12 +48,12 @@ class CLIManArgumentParsingTestCase(unittest.TestCase):
     def test_mode_syncdir_with_dir(self):
         cli_input = 'syncdir {dir}'.format(dir=TMP_DIRECTORY)
         args = self.climan.parse_string(cli_input)
-        self.assertEqual(args.dir, TMP_DIRECTORY)
+        self.assertEqual(args.dir, os.path.abspath(TMP_DIRECTORY))
 
     def test_mode_syncdir_using_sync_alias(self):
         cli_input = 'sync {dir}'.format(dir=TMP_DIRECTORY)
         args = self.climan.parse_string(cli_input)
-        self.assertEqual(args.dir, TMP_DIRECTORY)
+        self.assertEqual(args.dir, os.path.abspath(TMP_DIRECTORY))
         # print('Args:', args)
 
     def test_mode_setting_view_option_value(self):
@@ -307,14 +307,14 @@ class CLIManSyncRecentTestCase(unittest.TestCase):
         args = self.climan.parse_string(self.cli_input)
         args.func(args)
         self.assertNotIn(self.dead_thread_dir.name, self.climan.recent_threads)
-        self.assertIn(self.alive_thread_dir.name, self.climan.recent_threads)
+        self.assertIn(os.path.abspath(self.alive_thread_dir.name), self.climan.recent_threads)
 
     def test_sync_recent_update_config(self):
         args = self.climan.parse_string(self.cli_input)
         args.func(args)
         config_dict = utilities.json_from_path(self.climan.config_path())
         self.assertNotIn(self.dead_thread_dir.name, config_dict[CLIMan.OPTION_RECENT_THREADS])
-        self.assertIn(self.alive_thread_dir.name, config_dict[CLIMan.OPTION_RECENT_THREADS])
+        self.assertIn(os.path.abspath(self.alive_thread_dir.name), config_dict[CLIMan.OPTION_RECENT_THREADS])
 
     def test_recent_list_with_missing_threads(self):
         """For when the recent_list contains a thread folder that has already been deleted from the hard drive."""
@@ -351,7 +351,7 @@ class CLIManMaxRecentThreadsExceeded(unittest.TestCase):
         self.assertEqual(len(self.climan.recent_threads), self.climan.DEFAULT_MAX_RECENT_THREADS)
 
         # The alive thread is the last element
-        self.assertEqual(self.climan.recent_threads[-1], self.alive_thread_dir.name)
+        self.assertEqual(self.climan.recent_threads[-1], os.path.abspath(self.alive_thread_dir.name))
 
 
 class CLIManSettingSubCommandTestCase(unittest.TestCase):
@@ -415,3 +415,19 @@ class CLIManSettingSubCommandTestCase(unittest.TestCase):
         # Load the settings and compare
         config_dict = utilities.json_from_path(self.climan.config_path())
         self.assertEqual(config_dict[CLIMan.OPTION_MAX_RECENT_THREADS], int(args.option_value))
+
+
+class ConvertDirArgsToAbsolutePathTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.climan = CLIMan()
+
+    def test_download_dir_arg_period(self):
+        """The dir argument in the download command should turn the '.' into absolute path."""
+        args = self.climan.parse_string('download {} -d .'.format(STICKY_THREAD_URL))
+        self.assertNotEqual(args.dir, '.')
+
+    def test_syncdir_dir_arg_period(self):
+        """The dir argument in the download command should turn the '.' into absolute path."""
+        args = self.climan.parse_string('sync-dir .'.format(STICKY_THREAD_URL))
+        self.assertNotEqual(args.dir, '.')

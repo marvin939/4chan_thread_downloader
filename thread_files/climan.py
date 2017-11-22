@@ -21,7 +21,7 @@ class CLIMan:
     CONFIG_DIR = os.path.expanduser('~')
 
     # Settings that can be overwritten by loading a config
-    DEFAULT_DOWNLOAD_DIR = os.path.expanduser('~/Downloads/4threads/')
+    DEFAULT_DOWNLOAD_DIR = os.path.abspath(os.path.expanduser('~/Downloads/4threads/'))
     DEFAULT_MAX_RECENT_THREADS = 20
 
     # Settings name
@@ -50,7 +50,7 @@ class CLIMan:
                                                      help='Download a URL and optionally to a directory.')
         download_parser.add_argument('url',
                                      help="Thread's URL to download")
-        download_parser.add_argument('--dir', '-d',
+        download_parser.add_argument('--dir', '-d', type=os.path.abspath,
                                      help='Destination directory')
         download_parser.set_defaults(func=self.cli_download_to_directory)
 
@@ -59,6 +59,7 @@ class CLIMan:
                                                      help='syncdir sub-command help',
                                                      aliases=['sync', 'syncdir'])
         sync_dir_parser.add_argument('dir',
+                                     type=os.path.abspath,
                                     help='Directory of thread to synchronise')
         sync_dir_parser.set_defaults(func=self.cli_synchronise_to_directory)
 
@@ -113,7 +114,7 @@ class CLIMan:
                 pop_list.add(thread_dir)
                 # pop_list += [thread_dir]
 
-        self.recent_threads = list((thread_dir for thread_dir in self.recent_threads if thread_dir not in pop_list))
+        self.recent_threads = list((os.path.abspath(thread_dir) for thread_dir in self.recent_threads if thread_dir not in pop_list))
         self.save_config()
 
         return self.recent_threads
@@ -163,7 +164,7 @@ class CLIMan:
             return
         if len(self.recent_threads) == self.DEFAULT_MAX_RECENT_THREADS:
             self.recent_threads = self.recent_threads[1:]   # Shift left
-        self.recent_threads += [downloader.destination_folder]
+        self.recent_threads += [os.path.abspath(os.path.expanduser(downloader.destination_folder))]
 
     @staticmethod
     def config_path():

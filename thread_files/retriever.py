@@ -13,7 +13,7 @@ from cachecontrol.caches.file_cache import FileCache
 
 
 class BatchDownloader:
-    DEBUG = False
+    DBG_DOWNLOAD = False
     THREAD_SAVE_NAME = 'thread.html'
     THREAD_DETAILS_FILENAME = 'thread_details.pkl'  # pickle
     IGNORE_LIST_FILENAME = 'ignore_list.txt'
@@ -37,7 +37,7 @@ class BatchDownloader:
                 print('skipping {}...'.format(url))
             return save_path
 
-        if not self.DEBUG:
+        if not self.DBG_DOWNLOAD:
             with futures.ThreadPoolExecutor() as executor:
                 jobs = []
                 for url in self.links():
@@ -88,10 +88,10 @@ class BatchDownloader:
         return os.path.join(self.destination_folder, self.THREAD_DETAILS_FILENAME)
 
     def construct_details_dict(self):
-        # if not self.has_response():
-        #     return
         details_dict = dict()
-        if self.links_retriever.response is not None:
+        r = self.links_retriever.response
+        if not self.links_retriever.thread_is_dead():
+            '''Don't include last-modified tag is it's already dead'''
             details_dict['last-modified'] = self.links_retriever.response.headers['last-modified']
         details_dict['url'] = self.links_retriever.thread_url
         details_dict['thread_alive'] = not self.links_retriever.thread_is_dead()
@@ -157,6 +157,14 @@ class BatchDownloader:
 
     def download_url(self, url):
         pass
+
+    def should_download(self):
+        alive = not self.links_retriever.thread_is_dead()
+        # download_allow = False
+        # r = self.links_retriever.response
+        # if r is not None and r.status_code != 404:
+        #     download_allow = True
+        return alive
 
 
 class LinksRetriever():
