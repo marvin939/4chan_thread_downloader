@@ -152,32 +152,34 @@ class BatchDownloaderDetailsTestCase(unittest.TestCase):
         self.assertEqual(loaded['url'], custom_details['url'])
         self.assertEqual(loaded['thread_alive'], custom_details['thread_alive'])
 
-    def test_thread_404_but_has_details(self):
-        fake_url = THREAD_URL + '404'
-        self.linkser = LinksRetriever(fake_url)
-        self.downloader = BatchDownloader(self.linkser, self.destination_directory)
-        # update the details pickle
+    # LinksRetriever now raises error when it reaches a 404'd thraed
+    # def test_thread_404_but_has_details(self):
+    #     fake_url = THREAD_URL + '404'
+    #     self.linkser = LinksRetriever(fake_url)
+    #     self.downloader = BatchDownloader(self.linkser, self.destination_directory)
+    #     # update the details pickle
+    #
+    #     self.assertTrue(self.linkser.thread_is_dead())
+    #
+    #     details = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
+    #     self.assertIsNotNone(details)
+    #     self.assertTrue(details['thread_alive'], True)  # Hasn't been updated yet...
 
-        self.assertTrue(self.linkser.thread_is_dead())
-
-        details = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
-        self.assertIsNotNone(details)
-        self.assertTrue(details['thread_alive'], True)  # Hasn't been updated yet...
-
-    def test_thread_update_details_pickle_thread_dead(self):
-        fake_url = THREAD_URL + '404'
-        self.linkser = LinksRetriever(fake_url)
-        self.downloader = BatchDownloader(self.linkser, self.destination_directory)
-        details = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
-        self.assertIsNotNone(details)
-
-        details['thread_alive'] = False
-        self.assertFalse(details['thread_alive'])
-        self.downloader.pickle_details(details)
-
-        loaded = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
-        self.assertIsNotNone(loaded)
-        self.assertEqual(loaded['thread_alive'], details['thread_alive'])
+    # LinksRetriever now raises error when it reaches a 404'd thraed
+    # def test_thread_update_details_pickle_thread_dead(self):
+    #     fake_url = THREAD_URL + '404'
+    #     self.linkser = LinksRetriever(fake_url)
+    #     self.downloader = BatchDownloader(self.linkser, self.destination_directory)
+    #     details = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
+    #     self.assertIsNotNone(details)
+    #
+    #     details['thread_alive'] = False
+    #     self.assertFalse(details['thread_alive'])
+    #     self.downloader.pickle_details(details)
+    #
+    #     loaded = BatchDownloader.load_details_into_dict(self.downloader.get_details_path())
+    #     self.assertIsNotNone(loaded)
+    #     self.assertEqual(loaded['thread_alive'], details['thread_alive'])
 
 
 class ThreadDownloaderWithIgnoreFilteringTestCase(unittest.TestCase):
@@ -243,7 +245,10 @@ class DoNotDownloadIf404ResponseTestCase(unittest.TestCase):
         self.expired_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
         self.alive_thread_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
         # create_test_environment(self.expired_thread_dir.name, 0, EXPIRED_THREAD_URL)
-        self.dead_downloader = BatchDownloader(LinksRetriever(EXPIRED_THREAD_URL), self.expired_thread_dir.name)
+
+        # LinksRetriever now raises error when it reaches a 404'd thread
+        # self.dead_downloader = BatchDownloader(LinksRetriever(EXPIRED_THREAD_URL), self.expired_thread_dir.name)
+
         self.alive_downloader = BatchDownloader(LinksRetriever(STICKY_THREAD_URL), self.alive_thread_dir.name)
 
     def test_reproduce_error(self):
@@ -268,12 +273,14 @@ class DoNotDownloadIf404ResponseTestCase(unittest.TestCase):
         # Solved i think
         pass
 
-    def test_dead_downloader_not_from_hard_drive(self):
-        """Assert that the LinksRetriever object's from_hdd flag is false"""
-        self.assertFalse(self.dead_downloader.links_retriever.from_hdd)
+    # LinksRetriever now raises error when it reaches a 404'd thread
+    # def test_dead_downloader_not_from_hard_drive(self):
+    #     """Assert that the LinksRetriever object's from_hdd flag is false"""
+    #     self.assertFalse(self.dead_downloader.links_retriever.from_hdd)
 
     def test_should_download_on_alive_thread(self):
         self.assertTrue(self.alive_downloader.should_download())
 
-    def test_should_download_on_expired404d_thread(self):
-        self.assertFalse(self.dead_downloader.should_download())
+    # LinksRetriever now raises error when it reaches a 404'd thread
+    # def test_should_download_on_expired404d_thread(self):
+    #     self.assertFalse(self.dead_downloader.should_download())

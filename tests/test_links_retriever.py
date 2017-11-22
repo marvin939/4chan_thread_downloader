@@ -46,6 +46,9 @@ class LinksRetrieverInstantiateTestCase(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             LinksRetriever('iauygiuoasdfyyiorwe.html')
 
+    def test_instantiating_with_expired_thread(self):
+        with self.assertRaises(ValueError):
+            LinksRetriever(EXPIRED_THREAD_URL)
 
 class LinksRetrieverFromHDDTestCase(unittest.TestCase):
 
@@ -81,13 +84,14 @@ class LinksRetrieverFromHDDTestCase(unittest.TestCase):
 class LinksRetrieverFromOnlineTestCase(unittest.TestCase):
     def setUp(self):
         self.fake_url = THREAD_URL + '404'  # simulate dead thread
-        self.retriever = LinksRetriever(self.fake_url)
+        self.retriever = LinksRetriever(THREAD_URL)
+        # self.retriever = LinksRetriever(self.fake_url)
 
-    def test_thread_is_dead(self):
-        self.assertTrue(self.retriever.thread_is_dead())
+    # Already tested at instantiation test case; supposed to raise ValueError
+    # def test_thread_is_dead(self):
+    #     self.assertTrue(self.retriever.thread_is_dead())
 
     def test_thread_is_alive(self):
-        self.retriever = LinksRetriever(THREAD_URL)
         self.assertFalse(self.retriever.thread_is_dead())
 
     def test_get_html(self):

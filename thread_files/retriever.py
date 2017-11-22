@@ -198,7 +198,10 @@ class LinksRetriever():
                 self.from_hdd = True
             else:
                 # From internet
-                self.response = utilities.get_stored_session().get(url_found.group())
+                r = utilities.get_stored_session().get(url_found.group())
+                if r.status_code == 404:
+                    raise ValueError('Thread {url} has already expired!'.format(url=url))
+                self.response = r
                 self.soup = BeautifulSoup(self.response.text, 'lxml')
         elif isinstance(url, requests.models.Response):
             # Response object
