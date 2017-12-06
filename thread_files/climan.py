@@ -108,11 +108,14 @@ class CLIMan:
                 pop_list.add(thread_dir)
                 continue
 
-            downloader = BatchDownloader.from_directory(thread_dir)
-            self.downloader_start(downloader)
-            if downloader.links_retriever.thread_is_dead():
+            try:
+                downloader = BatchDownloader.from_directory(thread_dir)
+                self.downloader_start(downloader)
+                if downloader.links_retriever.thread_is_dead():
+                    pop_list.add(thread_dir)
+            except (ValueError, FileNotFoundError) as err:  # LinksRetriever raises a ValueError when a thread has 404'd, or thread pickle detail doesn't exist.
+                print('[Removing from recent]', err)
                 pop_list.add(thread_dir)
-                # pop_list += [thread_dir]
 
         self.recent_threads = list((os.path.abspath(thread_dir) for thread_dir in self.recent_threads if thread_dir not in pop_list))
         self.save_config()
@@ -120,12 +123,18 @@ class CLIMan:
         return self.recent_threads
 
     def cli_synchronise_to_directory(self, args):
-        downloader = BatchDownloader.from_directory(args.dir)
-        self.downloader_start(downloader)
-        self.recent_threads_add(downloader)
-        self.save_config()
-        return downloader.destination_folder
-        # pass
+        res = None
+        try:
+            downloader = BatchDownloader.from_directory(args.dir)
+            self.downloader_start(downloader)
+            self.recent_threads_add(downloader)
+            res = downloader.destination_folder
+        except (ValueError, FileNotFoundError) as err:
+            print('[Removing from recent]:', err)
+            self.recent_threads.remove(args.dir)
+        finally:
+            self.save_config()
+        return res
 
     def downloader_start(self, downloader):
         downloader.DEBUG = self.DEBUG

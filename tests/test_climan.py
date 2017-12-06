@@ -431,3 +431,36 @@ class ConvertDirArgsToAbsolutePathTestCase(unittest.TestCase):
         """The dir argument in the download command should turn the '.' into absolute path."""
         args = self.climan.parse_string('sync-dir .'.format(STICKY_THREAD_URL))
         self.assertNotEqual(args.dir, '.')
+
+
+class SyncRecentErrorRaisedOnDeletedOrThread(unittest.TestCase):
+    """When the sync-recent command is used, the climan instance should suppress the error with a printed message,
+    and remove the offending thread directory from the recent files
+
+    eg.
+    FileNotFoundError: thread_details.pkl does not exist in directory ...
+    ValueError: ....
+    """
+
+    def setUp(self):
+        self.temp_config_dir = TemporaryDirectory(dir=TMP_DIRECTORY)
+        CLIMan.CONFIG_DIR = self.temp_config_dir.name
+        self.climan = CLIMan()
+        self.create_fake_config()
+        # print('recent:', self.climan.recent_threads)
+        self.args = self.climan.parse_string(CLIMan.COMMAND_SYNC_RECENT)
+
+    def create_fake_config(self):
+        self.temp_thread_dir_1 = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.temp_thread_dir_2 = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.temp_thread_dir_3 = TemporaryDirectory(dir=TMP_DIRECTORY)
+        self.climan.recent_threads = [self.temp_thread_dir_1.name, self.temp_thread_dir_2.name, self.temp_thread_dir_3.name]
+        self.climan.save_config()
+
+    # def test_unfixed(self):
+    #     with self.assertRaises(BaseException):
+    #         self.args.func(self.args)
+
+    def test_suppressed(self):
+        self.args.func(self.args)
+        self.assertEqual(len(self.climan.recent_threads), 0)    # Zero since all of recent threads were fakes...

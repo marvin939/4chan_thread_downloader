@@ -127,7 +127,6 @@ class BatchDownloader:
         if self.ifilter is None or filtered == False:
             return not_downloaded
         filtered = tuple(self.ifilter.filter(not_downloaded))
-        print('filter:', filtered)
         return filtered
         # return self.ifilter.filter(not_downloaded)
 
